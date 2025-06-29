@@ -3,7 +3,7 @@ project.txt
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-"PRAVILA ZA IMPLEMENTACIJU PROJEKTNOG ZADATKA-1.pdf"
+PRAVILA ZA IMPLEMENTACIJU PROJEKTNOG ZADATKA-1.pdf
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
