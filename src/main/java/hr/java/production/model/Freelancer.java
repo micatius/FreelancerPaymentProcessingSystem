@@ -1,6 +1,6 @@
-package hr.java.model;
+package hr.java.production.model;
 
-public class Freelancer extends Person {
+public class Freelancer extends Worker {
     public Freelancer(String firstName, String lastName) {
         super(firstName, lastName);
     }

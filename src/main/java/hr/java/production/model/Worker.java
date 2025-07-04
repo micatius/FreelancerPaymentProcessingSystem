@@ -1,16 +1,17 @@
-package hr.java.model;
+package hr.java.production.model;
 
-public abstract class Person extends Entity {
+public abstract class Worker extends Entity implements Named {
     private String firstName;
     private String lastName;
 
-    protected Person(Long id, String firstName, String lastName) {
+
+    protected Worker(Long id, String firstName, String lastName) {
         super(id);
         this.firstName = firstName;
         this.lastName = lastName;
     }
 
-    protected Person(String firstName, String lastName) {
+    protected Worker(String firstName, String lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
     }

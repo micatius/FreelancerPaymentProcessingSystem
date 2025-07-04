@@ -1,4 +1,4 @@
-package hr.java.model;
+package hr.java.production.model;
 
 import java.io.Serializable;
 
