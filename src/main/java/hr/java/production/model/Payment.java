@@ -1,4 +1,4 @@
 package hr.java.production.model;
 
-public class Payment {
+public final class Payment {
 }

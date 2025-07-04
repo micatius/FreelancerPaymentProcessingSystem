@@ -1,4 +1,4 @@
 package hr.java.production.model;
 
-public class Invoice {
+public final class Invoice extends Entity {
 }
