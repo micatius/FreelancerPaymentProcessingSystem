@@ -1,9 +1,13 @@
 package hr.java.production.model;
 
-import hr.java.production.exception.BuilderValidationException;
+import hr.java.production.exception.ValidationException;
+import hr.java.production.utils.ValidationUtils;
 
 import java.util.Objects;
 
+/**
+ * Klasa Address predstavlja podatke o adresi, uključujući naziv ulice, kućni broj, grad i poštanski broj.
+ */
 public class Address extends Entity {
     private String street;
     private String houseNumber;
@@ -64,18 +68,10 @@ public class Address extends Entity {
         @Override
         public Address build() {
             // osnovna validacija
-            if (street == null || street.isBlank()) {
-                throw new BuilderValidationException("Ulica ne smije biti prazna");
-            }
-            if (houseNumber == null || houseNumber.isBlank()) {
-                throw new BuilderValidationException("Kućni broj ne smije biti prazan");
-            }
-            if (city == null || city.isBlank()) {
-                throw new BuilderValidationException("Grad ne smije biti prazan");
-            }
-            if (postalCode == null || !postalCode.matches("\\d{5}")) {
-                throw new BuilderValidationException("Poštanski broj mora imati 5 znamenki");
-            }
+            ValidationUtils.validateString(street, "Ulica");
+            ValidationUtils.validateString(houseNumber, "Kućni broj");
+            ValidationUtils.validateString(city, "Grad");
+            ValidationUtils.validatePostalCode(postalCode);
             return new Address(id, street, houseNumber, city, postalCode);
         }
     }

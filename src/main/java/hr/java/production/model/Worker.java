@@ -1,7 +1,8 @@
 package hr.java.production.model;
 
 
-import hr.java.production.exception.BuilderValidationException;
+import hr.java.production.exception.ValidationException;
+import hr.java.production.utils.ValidationUtils;
 
 import java.util.Objects;
 
@@ -76,21 +77,17 @@ public abstract class Worker extends Entity implements Named {
         /**
          * Ova metoda osigurava da su obavezna polja prije izgradnje radnika
          * validirana. Ako je bilo koje od provjeravanih polja neispravno ili
-         * nedostaje, metoda će baciti {@link BuilderValidationException}.
+         * nedostaje, metoda će baciti {@link ValidationException}.
          *
-         * @throws BuilderValidationException ako bilo koji od uvjeta nije zadovoljen.
+         * @throws ValidationException ako bilo koji od uvjeta nije zadovoljen.
          */
         protected void validateWorkerFields() {
-            if (firstName == null || firstName.isBlank())
-                throw new BuilderValidationException("Ime ne smije biti prazno");
-            if (lastName == null || lastName.isBlank())
-                throw new BuilderValidationException("Prezime ne smije biti prazno");
+            ValidationUtils.validateString(firstName, "Ime");
+            ValidationUtils.validateString(lastName, "Prezime");
             if (address == null)
-                throw new BuilderValidationException("Adresa je obavezna");
-            if (email != null && !email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,10}$"))
-                throw new BuilderValidationException("Email adresa nije ispravna");
-            if (phoneNumber != null && !phoneNumber.matches("\\d{10}"))
-                throw new BuilderValidationException("Telefonski broja mora imati 10 znamenki");
+                throw new ValidationException("Adresa je obavezna");
+            ValidationUtils.validateEmail(email);
+            ValidationUtils.validatePhoneNumber(phoneNumber);
         }
 
         @Override

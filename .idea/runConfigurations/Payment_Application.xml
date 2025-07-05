@@ -2,6 +2,7 @@
   <configuration default="false" name="Payment Application" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="hr.java.production.main.PaymentApplication" />
     <module name="FreelancerPaymentProcessingSystem" />
+    <option name="VM_PARAMETERS" value="--enable-native-access=javafx.graphics" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

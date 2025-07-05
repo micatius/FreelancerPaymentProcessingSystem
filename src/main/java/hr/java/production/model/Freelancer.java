@@ -1,6 +1,6 @@
 package hr.java.production.model;
 
-import hr.java.production.exception.BuilderValidationException;
+import hr.java.production.exception.ValidationException;
 
 import java.util.Objects;
 
@@ -86,16 +86,16 @@ public final class Freelancer extends Worker {
         public Freelancer build() {
             validateWorkerFields();
             if (businessName == null || businessName.isBlank()) {
-                throw new BuilderValidationException("Naziv poslovanja ne smije biti prazan");
+                throw new ValidationException("Naziv poslovanja ne smije biti prazan");
             }
             if (businessIdentificationNumber == null || businessIdentificationNumber.isBlank()) {
-                throw new BuilderValidationException("Identifikacijski broj ne smije biti prazan");
+                throw new ValidationException("Identifikacijski broj ne smije biti prazan");
             }
             if (bankAccountNumber == null || !bankAccountNumber.matches("^HR\\d{2}[0-9A-Z]{17}$")) {
-                throw new BuilderValidationException("Broj bankovnog računa mora biti valjan IBAN");
+                throw new ValidationException("Broj bankovnog računa mora biti valjan IBAN");
             }
             if (active == null) {
-                throw new BuilderValidationException("Status aktivnosti mora biti postavljen");
+                throw new ValidationException("Status aktivnosti mora biti postavljen");
             }
             return new Freelancer(
                     id,

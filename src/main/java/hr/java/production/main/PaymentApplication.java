@@ -5,7 +5,7 @@ package hr.java.production.main;
 //        •	Features: Payment tracking, invoicing, reporting.
 //        •	Database: Freelancer records, payment history, invoice logs.
 //        •	Threads: No
-//        tify finance teams of pending payments, monitor payment status.
+//        Notify finance teams of pending payments, monitor payment status.
 
 
 import javafx.fxml.FXMLLoader;

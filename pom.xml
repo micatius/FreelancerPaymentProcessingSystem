@@ -69,6 +69,9 @@
                             <!-- KADA DODAMO modules info možda će trebati mijenjati path -->
                             <mainClass>hr.java.production.main.PaymentApplication</mainClass>
                             <launcher>app</launcher>
+                            <jvmArgs>
+                                <jvmArg>--enable-native-access=javafx.graphics</jvmArg>
+                            </jvmArgs>
                             <jlinkZipName>app</jlinkZipName>
                             <jlinkImageName>app</jlinkImageName>
                             <noManPages>true</noManPages>
