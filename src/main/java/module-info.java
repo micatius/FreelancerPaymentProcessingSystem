@@ -3,10 +3,12 @@ module hr.java {
     requires javafx.fxml;
     requires org.slf4j;
     requires java.sql;
+    requires spring.security.crypto;
+    requires org.jetbrains.annotations;
 
     exports hr.java.production.model;
     exports hr.java.production.main;
     opens hr.java.production.main to javafx.fxml;
 //    exports hr.java.production.controller;
-//    opens hr.java.production.controller to javafx.fxml;
+    opens hr.java.production.controller to javafx.fxml;
 }

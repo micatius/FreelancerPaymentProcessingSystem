@@ -4,12 +4,13 @@ import hr.java.production.exception.ValidationException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
  * Klasa Employee predstavlja zaposlenika koji nasljeđuje osnovne atribute iz klase Worker
  * i dodaje specifične informacije poput datuma zapošljavanja, datuma raskida ugovora,
- * odjela u kojem je zaposlenik raspoređen te mjesečne plaće.
+ * odjela u kojem je zaposlenik zaposlen te plaće.
  */
 public class Employee extends Worker {
     private LocalDate hireDate;
@@ -126,5 +127,28 @@ public class Employee extends Worker {
     @Override
     public Role getRole() {
         return department == Department.FINANCE ? Role.FINANCE : Role.ADMIN;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Employee employee = (Employee) o;
+        return Objects.equals(hireDate, employee.hireDate) && Objects.equals(terminationDate, employee.terminationDate) && department == employee.department && Objects.equals(salary, employee.salary);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), hireDate, terminationDate, department, salary);
+    }
+
+    @Override
+    public String toString() {
+        return "Employee{" +
+                "hireDate=" + hireDate +
+                ", terminationDate=" + terminationDate +
+                ", department=" + department +
+                ", salary=" + salary +
+                '}';
     }
 }

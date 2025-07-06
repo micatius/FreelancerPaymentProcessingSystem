@@ -1,7 +1,7 @@
 package hr.java.production.model;
 
 import hr.java.production.exception.ValidationException;
-import hr.java.production.utils.ValidationUtils;
+import hr.java.production.util.ValidationUtils;
 
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -11,27 +11,30 @@ import java.util.Objects;
  * Nasljeđuje klasu Entity i implementira sučelje Named.
  */
 public class Service extends Entity implements Named {
-    private String serviceName;
+    private Long invoiceId;
+    private String name;
     private BigDecimal unitFee;
     private Integer quantity;
 
-    public Service(String serviceName, BigDecimal unitFee, Integer quantity) {
-        this.serviceName = serviceName;
-        this.unitFee = unitFee;
-        this.quantity = quantity;
-    }
 
-    public Service(Long id, String serviceName, BigDecimal unitFee, Integer quantity) {
+    private Service(Long id, Long invoiceId, String name, BigDecimal unitFee, Integer quantity) {
         super(id);
-        this.serviceName = serviceName;
+        this.invoiceId = invoiceId;
+        this.name = name;
         this.unitFee = unitFee;
         this.quantity = quantity;
     }
 
     public static class Builder extends Entity.Builder<Service, Builder> {
+        private Long invoiceId;
         private String serviceName;
         private BigDecimal unitFee;
         private Integer quantity;
+
+        public Builder invoiceId(Long invoiceId) {
+            this.invoiceId = invoiceId;
+            return self();
+        }
 
         public Builder serviceName(String serviceName) {
             this.serviceName = serviceName;
@@ -46,7 +49,6 @@ public class Service extends Entity implements Named {
         public Builder quantity(Integer quantity) {
             this.quantity = quantity;
             return self();
-
         }
 
         @Override
@@ -63,7 +65,7 @@ public class Service extends Entity implements Named {
             if (quantity == null || quantity < 1) {
                 throw new ValidationException("Količina usluge mora biti cijeli broj veći od 0");
             }
-            return new Service(id, serviceName, unitFee, quantity);
+            return new Service(id, invoiceId, serviceName, unitFee, quantity);
         }
     }
 
@@ -72,21 +74,25 @@ public class Service extends Entity implements Named {
      *
      * @return ukupna cijena kao instanca BigDecimal
      */
-    public BigDecimal calculateFullCost() {
+    public BigDecimal calculateTotalCost() {
         return unitFee.multiply(BigDecimal.valueOf(quantity));
+    }
+
+    public Long getInvoiceId() {
+        return invoiceId;
+    }
+
+    public void setInvoiceId(Long invoiceId) {
+        this.invoiceId = invoiceId;
     }
 
     @Override
     public String getName() {
-        return serviceName;
+        return name;
     }
 
-    public String getServiceName() {
-        return serviceName;
-    }
-
-    public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public BigDecimal getUnitFee() {
@@ -107,21 +113,26 @@ public class Service extends Entity implements Named {
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         Service service = (Service) o;
-        return Objects.equals(serviceName, service.serviceName) && Objects.equals(unitFee, service.unitFee) && Objects.equals(quantity, service.quantity);
+        return Objects.equals(invoiceId, service.invoiceId) &&
+                Objects.equals(name, service.name) &&
+                Objects.equals(unitFee, service.unitFee) &&
+                Objects.equals(quantity, service.quantity);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), serviceName, unitFee, quantity);
+        return Objects.hash(super.hashCode(), invoiceId, name, unitFee, quantity);
     }
 
     @Override
     public String toString() {
         return "Service{" +
-                "serviceName='" + serviceName + '\'' +
+                "invoiceId=" + invoiceId +
+                ", serviceName='" + name + '\'' +
                 ", unitFee=" + unitFee +
                 ", quantity=" + quantity +
                 '}';

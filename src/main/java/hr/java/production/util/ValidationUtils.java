@@ -1,4 +1,4 @@
-package hr.java.production.utils;
+package hr.java.production.util;
 
 import hr.java.production.exception.ValidationException;
 import java.util.regex.Pattern;

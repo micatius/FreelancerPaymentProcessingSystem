@@ -2,7 +2,7 @@ package hr.java.production.model;
 
 
 import hr.java.production.exception.ValidationException;
-import hr.java.production.utils.ValidationUtils;
+import hr.java.production.util.ValidationUtils;
 
 import java.util.Objects;
 
