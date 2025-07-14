@@ -18,7 +18,7 @@ import java.util.Optional;
  */
 public abstract class DbDao<T extends Entity> {
 
-    private final Class<T> type;
+    protected final Class<T> type;
 
     protected DbDao(Class<T> type) {
         this.type = type;
@@ -68,9 +68,9 @@ public abstract class DbDao<T extends Entity> {
      *
      * @param rs ResultSet koji se koristi za dohvaćanje podataka trenutnog retka
      * @return instanca tipa T mapirana iz trenutnog retka
-     * @throws SQLException ako dođe do greške pri pristupu ResultSet objektu
+     * @throws DatabaseAccessException ako dođe do greške pri pristupu ResultSet objektu
      */
-    protected abstract T mapRow(ResultSet rs) throws SQLException;
+    protected abstract T mapRow(ResultSet rs) throws DatabaseAccessException, SQLException;
 
     /**
      * Vraća SQL izraz za dohvaćanje entiteta prema ID-u.
@@ -184,7 +184,7 @@ public abstract class DbDao<T extends Entity> {
                 return Optional.of(mapRow(rs));
             }
             return Optional.empty();
-        } catch (SQLException | DatabaseConnectionException e) {
+        } catch (SQLException | DatabaseConnectionException | DatabaseAccessException e) {
             throw new DatabaseAccessException("Greška pri dohvaćanju objekta " +
                     type.getSimpleName() + " s ID=" + id, e);
         }
@@ -206,8 +206,7 @@ public abstract class DbDao<T extends Entity> {
                 results.add(mapRow(rs));
             }
             return results;
-
-        } catch (SQLException | DatabaseConnectionException e) {
+        } catch (SQLException | DatabaseConnectionException | DatabaseAccessException e) {
             throw new DatabaseAccessException(
                     "Greška pri dohvaćanju svih objekata " + type.getSimpleName(), e
             );

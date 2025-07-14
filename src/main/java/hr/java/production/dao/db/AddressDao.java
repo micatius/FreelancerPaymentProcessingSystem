@@ -1,4 +1,5 @@
 package hr.java.production.dao.db;
+import hr.java.production.exception.DatabaseAccessException;
 import hr.java.production.model.Address;
 import java.sql.*;
 
@@ -57,15 +58,18 @@ public final class AddressDao extends DbDao<Address> {
     }
 
     @Override
-    protected Address mapRow(ResultSet rs) throws SQLException {
-        // use the Builder to reconstruct the Address
-        return new Address.Builder()
-                .id(          rs.getLong("id"))
-                .street(      rs.getString("street"))
-                .houseNumber( rs.getString("house_number"))
-                .city(        rs.getString("city"))
-                .postalCode(  rs.getString("postal_code"))
-                .build();
+    protected Address mapRow(ResultSet rs) throws DatabaseAccessException {
+        try {
+            return new Address.Builder()
+                    .id(          rs.getLong("id"))
+                    .street(      rs.getString("street"))
+                    .houseNumber( rs.getString("house_number"))
+                    .city(        rs.getString("city"))
+                    .postalCode(  rs.getString("postal_code"))
+                    .build();
+        } catch (SQLException e) {
+            throw new DatabaseAccessException("Greška u mapiranju adrese iz ResultSet", e);
+        }
     }
 
     @Override

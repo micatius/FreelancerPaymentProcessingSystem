@@ -2,13 +2,12 @@ package hr.java.production.dao.db;
 
 import hr.java.production.exception.DatabaseAccessException;
 import hr.java.production.exception.DatabaseConnectionException;
+import hr.java.production.model.Freelancer;
 import hr.java.production.model.Invoice;
 import hr.java.production.model.Service;
 import hr.java.production.util.DbUtil;
-
 import java.sql.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,6 +19,7 @@ import java.util.List;
 public final class InvoiceDao extends DbDao<Invoice> implements ChangeLogger {
 
     private final ServiceDao serviceDao = new ServiceDao();
+    private final FreelancerDao freelancerDao = new FreelancerDao();
 
     public InvoiceDao() {
         super(Invoice.class);
@@ -59,9 +59,7 @@ public final class InvoiceDao extends DbDao<Invoice> implements ChangeLogger {
 
     @Override
     protected void bindUpdate(PreparedStatement ps, Invoice inv) throws SQLException {
-        // first bind the four common fields
         bindInsert(ps, inv);
-        // then bind the ID for WHERE
         ps.setLong(5, inv.getId());
     }
 
@@ -90,37 +88,33 @@ public final class InvoiceDao extends DbDao<Invoice> implements ChangeLogger {
     }
 
     @Override
-    protected Invoice mapRow(ResultSet rs) throws SQLException {
+    protected Invoice mapRow(ResultSet rs) throws SQLException, DatabaseAccessException {
         long id           = rs.getLong("id");
         long freelancerId = rs.getLong("freelancer_id");
         LocalDate invDate = rs.getDate("invoice_date").toLocalDate();
         LocalDate dueDate = rs.getDate("due_date").toLocalDate();
         boolean paid      = rs.getBoolean("paid");
 
-        // build Invoice without services
-        Invoice inv = new Invoice.Builder()
+        Freelancer invoiceFreelancer = freelancerDao.findById(freelancerId).
+                orElseThrow(() -> new DatabaseAccessException("Greška u dohvaćanju suradnika za fakturu s ID=" + id));
+        List<Service> invoiceServices = serviceDao.findByInvoiceId(id);
+
+        return new Invoice.Builder()
                 .id(id)
-                .freelancerId(freelancerId)
+                .freelancer(invoiceFreelancer)
+                .services(invoiceServices)
                 .invoiceDate(invDate)
                 .dueDate(dueDate)
                 .paid(paid)
                 .build();
-
-        // load its services
-        List<Service> items = serviceDao.findByInvoiceId(id);
-        inv.setServices(items);
-        return inv;
     }
 
-    /**
-     * Override save to insert invoice and its services in one transaction.
-     */
+
     @Override
     public void save(Invoice inv) throws DatabaseAccessException {
         try (Connection conn = DbUtil.connectToDatabase()) {
             conn.setAutoCommit(false);
 
-            // insert invoice and set generated ID
             try (PreparedStatement ps = conn.prepareStatement(getInsertSql(), Statement.RETURN_GENERATED_KEYS)) {
                 bindInsert(ps, inv);
                 ps.executeUpdate();
@@ -131,62 +125,51 @@ public final class InvoiceDao extends DbDao<Invoice> implements ChangeLogger {
                 }
             }
 
-            // insert services
             for (Service s : inv.getServices()) {
                 s.setInvoiceId(inv.getId());
                 serviceDao.save(s);
             }
 
             conn.commit();
-            logChange(null, inv);
+            logChange(type, null, inv);
 
         } catch (SQLException | DatabaseConnectionException e) {
             throw new DatabaseAccessException("Greška pri spremanju računa", e);
         }
     }
 
-    /**
-     * Override update to manage services too (delete & reinsert).
-     */
+
     @Override
     public void update(Invoice inv) throws DatabaseAccessException {
-        // load old for changelog
         Invoice old = findById(inv.getId())
                 .orElseThrow(() -> new DatabaseAccessException("Račun s ID=" + inv.getId() + " ne postoji"));
 
-        try (Connection conn = DbUtil.connectToDatabase()) {
+        try (Connection conn = DbUtil.connectToDatabase();
+             PreparedStatement del = conn.prepareStatement(
+                     "DELETE FROM service WHERE invoice_id = ?")) {
             conn.setAutoCommit(false);
+            del.setLong(1, inv.getId());
+            del.executeUpdate();
 
-            // delete old services
-            try (PreparedStatement del = conn.prepareStatement(
-                    "DELETE FROM service WHERE invoice_id = ?")) {
-                del.setLong(1, inv.getId());
-                del.executeUpdate();
-            }
 
-            // update invoice
             try (PreparedStatement ps = conn.prepareStatement(getUpdateSql())) {
                 bindUpdate(ps, inv);
                 ps.executeUpdate();
             }
 
-            // reinsert services
             for (Service s : inv.getServices()) {
                 s.setInvoiceId(inv.getId());
                 serviceDao.save(s);
             }
 
             conn.commit();
-            logChange(old, inv);
+            logChange(type, old, inv);
 
         } catch (SQLException | DatabaseConnectionException e) {
             throw new DatabaseAccessException("Greška pri ažuriranju računa", e);
         }
     }
 
-    /**
-     * Override delete to remove services first, then invoice.
-     */
     @Override
     public void delete(Long id) throws DatabaseAccessException {
         Invoice old = findById(id)
@@ -201,9 +184,10 @@ public final class InvoiceDao extends DbDao<Invoice> implements ChangeLogger {
                 del.executeUpdate();
             }
 
-            super.delete(id);  // calls base delete and logs
+            super.delete(id);
 
             conn.commit();
+            logChange(type, old, null);
         } catch (SQLException | DatabaseConnectionException e) {
             throw new DatabaseAccessException("Greška pri brisanju računa", e);
         }
