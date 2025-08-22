@@ -1,6 +1,6 @@
 package hr.java.production.exception;
 
-public class DatabaseConnectionException extends Exception {
+public class DatabaseConnectionException extends DatabaseException {
     public DatabaseConnectionException(String message) {
         super(message);
     }

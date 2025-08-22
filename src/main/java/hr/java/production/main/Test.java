@@ -4,6 +4,7 @@ import hr.java.production.dao.db.AddressDao;
 import hr.java.production.dao.db.FreelancerDao;
 import hr.java.production.dao.txt.UserDao;
 import hr.java.production.exception.DatabaseAccessException;
+import hr.java.production.exception.DatabaseException;
 import hr.java.production.model.Address;
 import hr.java.production.model.Freelancer;
 import hr.java.production.util.PasswordUtils;
@@ -38,8 +39,9 @@ public class Test {
            // addressDao.save(new Address.Builder().street("Kralja Pesa").houseNumber("1").city("Zagreb").postalCode("10000").build());
             List<Freelancer> freelancerList = freelancerDao.findAll();
             freelancerList.forEach(System.out::println);
-        } catch (DatabaseAccessException e) {
+        } catch (DatabaseException e) {
             throw new RuntimeException(e);
         }
+
     }
 }

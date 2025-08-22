@@ -1,6 +1,6 @@
 package hr.java.production.exception;
 
-public class DatabaseAccessException extends Exception {
+public class DatabaseAccessException extends DatabaseException {
   public DatabaseAccessException(String message) {
     super(message);
   }
