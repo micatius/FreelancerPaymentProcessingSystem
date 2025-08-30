@@ -44,9 +44,7 @@ public final class InvoiceDao extends DbDao<Invoice> {
         LocalDate dueDate = rs.getDate("due_date").toLocalDate();
         boolean paid      = rs.getBoolean("paid");
 
-        Freelancer freelancerRef = new Freelancer.Builder()
-                .id(freelancerId)
-                .build();
+        Freelancer freelancerRef = Freelancer.ref(freelancerId);
 
         return new Invoice.Builder()
                 .id(id)

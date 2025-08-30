@@ -43,9 +43,7 @@ public final class FreelancerDao extends DbDao<Freelancer> {
     protected Freelancer mapRow(ResultSet rs) throws SQLException {
         long addrId = rs.getLong("address_id");
 
-        Address addressRef = new Address.Builder()
-                .id(addrId)
-                .build();
+        Address addressRef = Address.ref(addrId);
 
         return new Freelancer.Builder()
                 .id(rs.getLong("id"))
