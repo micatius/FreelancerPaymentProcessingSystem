@@ -1,11 +1,10 @@
 package hr.java.production.model;
 
-import hr.java.production.exception.ValidationException;
+import hr.java.production.exception.ObjectValidationException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Klasa koja predstavlja račun (invoice) izdan za određenog freelancera.
@@ -18,6 +17,9 @@ public class Invoice extends Entity {
     private List<Service> services;
     private Boolean paid;
 
+    private Invoice(Long id) {
+        super(id);
+    }
 
     protected Invoice(Freelancer freelancer,
                       LocalDate invoiceDate,
@@ -86,22 +88,27 @@ public class Invoice extends Entity {
         @Override
         public Invoice build() {
             if (freelancer == null) {
-                throw new ValidationException("Freelancer je obavezan");
+                throw new ObjectValidationException("Freelancer je obavezan");
             }
             if (invoiceDate == null) {
-                throw new ValidationException("Datum izdavanja je obavezan");
+                throw new ObjectValidationException("Datum izdavanja je obavezan");
             }
             if (dueDate == null) {
-                throw new ValidationException("Datum dospijeća je obavezan");
+                throw new ObjectValidationException("Datum dospijeća je obavezan");
             }
             if (dueDate.isBefore(invoiceDate)) {
-                throw new ValidationException("Datum dospijeća ne smije biti prije datuma izdavanja");
+                throw new ObjectValidationException("Datum dospijeća ne smije biti prije datuma izdavanja");
             }
             if (services == null || services.isEmpty()) {
-                throw new ValidationException("Račun mora sadržavati bar jednu stavku usluge");
+                throw new ObjectValidationException("Račun mora sadržavati bar jednu stavku usluge");
             }
             return new Invoice(id, freelancer, invoiceDate, dueDate, services, paid);
         }
+    }
+
+    public static Invoice ref(Long id) {
+        if (id == null) throw new ObjectValidationException("ID je obavezan za referencu računa.");
+        return new Invoice(id);
     }
 
     /**
@@ -174,18 +181,7 @@ public class Invoice extends Entity {
         return freelancer.getId();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        Invoice invoice = (Invoice) o;
-        return paid == invoice.paid && Objects.equals(freelancer, invoice.freelancer) && Objects.equals(invoiceDate, invoice.invoiceDate) && Objects.equals(dueDate, invoice.dueDate) && Objects.equals(services, invoice.services);
-    }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), freelancer, invoiceDate, dueDate, services, paid);
-    }
 
     @Override
     public String toString() {

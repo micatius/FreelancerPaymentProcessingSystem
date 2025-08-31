@@ -1,6 +1,5 @@
-package hr.java.production.dao.db;
+package hr.java.production.repo.db;
 
-import hr.java.production.exception.DatabaseAccessException;
 import hr.java.production.exception.DatabaseConnectionException;
 import hr.java.production.exception.DatabaseException;
 import hr.java.production.model.Service;

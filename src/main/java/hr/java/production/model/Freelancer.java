@@ -1,8 +1,6 @@
 package hr.java.production.model;
 
-import hr.java.production.exception.ValidationException;
-
-import java.util.Objects;
+import hr.java.production.exception.ObjectValidationException;
 
 /**
  * Klasa Freelancer predstavlja samostalnog radnika s dodatnim atributima
@@ -14,6 +12,11 @@ public final class Freelancer extends Worker {
     private String businessIdentificationNumber;
     private String bankAccountNumber;
     private Boolean active;
+
+    private Freelancer(Long id) {
+        super(id);
+    }
+
 
     private Freelancer(Builder builder) {
         super(builder.id, builder.firstName, builder.lastName, builder.email, builder.phoneNumber, builder.address);
@@ -58,19 +61,24 @@ public final class Freelancer extends Worker {
         public Freelancer build() {
             validateWorkerFields();
             if (businessName == null || businessName.isBlank()) {
-                throw new ValidationException("Naziv poslovanja ne smije biti prazan");
+                throw new ObjectValidationException("Naziv poslovanja ne smije biti prazan");
             }
             if (businessIdentificationNumber == null || businessIdentificationNumber.isBlank()) {
-                throw new ValidationException("Identifikacijski broj ne smije biti prazan");
+                throw new ObjectValidationException("Identifikacijski broj ne smije biti prazan");
             }
             if (bankAccountNumber == null || !bankAccountNumber.matches("^HR\\d{2}[0-9A-Z]{17}$")) {
-                throw new ValidationException("Broj bankovnog računa mora biti valjan IBAN");
+                throw new ObjectValidationException("Broj bankovnog računa mora biti valjan IBAN");
             }
             if (active == null) {
-                throw new ValidationException("Status aktivnosti mora biti postavljen");
+                throw new ObjectValidationException("Status aktivnosti mora biti postavljen");
             }
             return new Freelancer(this);
         }
+    }
+
+    public static Freelancer ref(Long id) {
+        if (id == null) throw new ObjectValidationException("ID je obavezan za referencu freelancera.");
+        return new Freelancer(id);
     }
 
     @Override
@@ -124,16 +132,4 @@ public final class Freelancer extends Worker {
         return Role.FREELANCER;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        Freelancer that = (Freelancer) o;
-        return Objects.equals(businessName, that.businessName) && Objects.equals(businessIdentificationNumber, that.businessIdentificationNumber) && Objects.equals(bankAccountNumber, that.bankAccountNumber) && Objects.equals(active, that.active);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), businessName, businessIdentificationNumber, bankAccountNumber, active);
-    }
 }

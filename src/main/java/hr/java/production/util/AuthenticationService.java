@@ -1,6 +1,6 @@
 package hr.java.production.util;
 
-import hr.java.production.dao.txt.UserDao;
+import hr.java.production.repo.txt.UserDao;
 import hr.java.production.exception.AuthenticationException;
 import hr.java.production.model.User;
 

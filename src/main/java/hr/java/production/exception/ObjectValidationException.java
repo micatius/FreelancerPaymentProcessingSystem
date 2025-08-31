@@ -1,23 +1,23 @@
 package hr.java.production.exception;
 
-public class ValidationException extends RuntimeException {
+public class ObjectValidationException extends RuntimeException {
 
-    public ValidationException(String message) {
+    public ObjectValidationException(String message) {
         super(message);
     }
 
-    public ValidationException(String message, Throwable cause) {
+    public ObjectValidationException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public ValidationException(Throwable cause) {
+    public ObjectValidationException(Throwable cause) {
         super(cause);
     }
 
-    public ValidationException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public ObjectValidationException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 
-    public ValidationException() {
+    public ObjectValidationException() {
     }
 }

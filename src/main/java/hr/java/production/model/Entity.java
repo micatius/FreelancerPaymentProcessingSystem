@@ -64,14 +64,15 @@ public abstract class Entity implements Serializable {
 
 
     @Override
-    public boolean equals(Object o) {
+    public final boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Entity entity = (Entity) o;
+        if (entity.id == null || this.id == null) return false;
         return Objects.equals(id, entity.id);
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
+    public final int hashCode() {
+        return (id != null) ? id.hashCode() : System.identityHashCode(this);
     }
 }

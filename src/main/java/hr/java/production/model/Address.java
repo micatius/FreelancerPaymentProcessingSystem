@@ -1,8 +1,7 @@
 package hr.java.production.model;
 
+import hr.java.production.exception.ObjectValidationException;
 import hr.java.production.util.ValidationUtils;
-
-import java.util.Objects;
 
 /**
  * Klasa Address predstavlja podatke o adresi, uključujući naziv ulice, kućni broj, grad i poštanski broj.
@@ -12,6 +11,15 @@ public class Address extends Entity {
     private String houseNumber;
     private String city;
     private String postalCode;
+
+    /**
+     * Privatni konstruktor za kreiranje instance klase Address s određenim ID-om.
+     *
+     * @param id jedinstveni identifikator za adresu
+     */
+    private Address(Long id) {
+        super(id);
+    }
 
     /**
      * Privatni konstruktor za inicijalizaciju adrese s određenim detaljima.
@@ -75,19 +83,12 @@ public class Address extends Entity {
         }
     }
 
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        Address address = (Address) o;
-        return Objects.equals(street, address.street) && Objects.equals(houseNumber, address.houseNumber) && Objects.equals(city, address.city) && Objects.equals(postalCode, address.postalCode);
+    public static Address ref(Long id) {
+        if (id == null) throw new ObjectValidationException("ID je obavezan za referencu adrese.");
+        return new Address(id);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), street, houseNumber, city, postalCode);
-    }
+
 
     public String getStreet() {
         return street;

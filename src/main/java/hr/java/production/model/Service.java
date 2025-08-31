@@ -1,10 +1,9 @@
 package hr.java.production.model;
 
-import hr.java.production.exception.ValidationException;
+import hr.java.production.exception.ObjectValidationException;
 import hr.java.production.util.ValidationUtils;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 
 /**
  * Klasa Service predstavlja pojedinu uslugu s nazivom, jediničnom cijenom i količinom.
@@ -60,10 +59,10 @@ public class Service extends Entity implements Named {
         public Service build() {
             ValidationUtils.validateString(serviceName, "Naziv usluge");
             if (unitFee == null || unitFee.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new ValidationException("Jedinična cijena usluge mora biti broj veći od 0.");
+                throw new ObjectValidationException("Jedinična cijena usluge mora biti broj veći od 0.");
             }
             if (quantity == null || quantity < 1) {
-                throw new ValidationException("Količina usluge mora biti cijeli broj veći od 0");
+                throw new ObjectValidationException("Količina usluge mora biti cijeli broj veći od 0");
             }
             return new Service(id, invoiceId, serviceName, unitFee, quantity);
         }
@@ -111,22 +110,6 @@ public class Service extends Entity implements Named {
         this.quantity = quantity;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        Service service = (Service) o;
-        return Objects.equals(invoiceId, service.invoiceId) &&
-                Objects.equals(name, service.name) &&
-                Objects.equals(unitFee, service.unitFee) &&
-                Objects.equals(quantity, service.quantity);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), invoiceId, name, unitFee, quantity);
-    }
 
     @Override
     public String toString() {

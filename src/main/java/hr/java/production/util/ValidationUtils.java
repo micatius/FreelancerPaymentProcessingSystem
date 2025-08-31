@@ -1,6 +1,6 @@
 package hr.java.production.util;
 
-import hr.java.production.exception.ValidationException;
+import hr.java.production.exception.ObjectValidationException;
 import java.util.regex.Pattern;
 
 /**
@@ -24,44 +24,44 @@ public final class ValidationUtils {
      *
      * @param value     tekst koji validiramo
      * @param fieldName naziv polja (npr. "Ulica", "Grad")
-     * @throws ValidationException ako je tekst null ili prazan
+     * @throws ObjectValidationException ako je tekst null ili prazan
      */
     public static void validateString(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             String niceName = fieldName.substring(0,1).toUpperCase() + fieldName.substring(1);
-            throw new ValidationException(niceName + " ne smije biti prazno");
+            throw new ObjectValidationException(niceName + " ne smije biti prazno");
         }
     }
     /**
      * Provjerava je li email validan prema zadanoj regex logici.
      * @param email adresa za provjeru
-     * @throws ValidationException ako email nije u ispravnom formatu
+     * @throws ObjectValidationException ako email nije u ispravnom formatu
      */
     public static void validateEmail(String email) {
         if (email == null || !EMAIL_PATTERN.matcher(email).matches()) {
-            throw new ValidationException("Email adresa nije ispravna");
+            throw new ObjectValidationException("Email adresa nije ispravna");
         }
     }
 
     /**
      * Provjerava je li telefonski broj sastavljen od točno 10 znamenki.
      * @param phoneNumber broj za provjeru
-     * @throws ValidationException ako telefonski broj nema točno 10 znamenki
+     * @throws ObjectValidationException ako telefonski broj nema točno 10 znamenki
      */
     public static void validatePhoneNumber(String phoneNumber) {
         if (phoneNumber == null || !PHONE_PATTERN.matcher(phoneNumber).matches()) {
-            throw new ValidationException("Telefonski broj mora imati 10 znamenki");
+            throw new ObjectValidationException("Telefonski broj mora imati 10 znamenki");
         }
     }
 
     /**
      * Provjerava je li pošstanski broj sastavljen od točno 5 znamenki.
      * @param postalCode broj za provjeru
-     * @throws ValidationException ako pošstanski broj nema točno 5 znamenki
+     * @throws ObjectValidationException ako pošstanski broj nema točno 5 znamenki
      */
     public static void validatePostalCode(String postalCode) {
         if (postalCode == null || !POSTAL_CODE.matcher(postalCode).matches()) {
-            throw new ValidationException("Poštanski broj mora imati 5 znamenki");
+            throw new ObjectValidationException("Poštanski broj mora imati 5 znamenki");
         }
     }
 

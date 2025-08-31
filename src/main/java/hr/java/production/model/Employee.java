@@ -1,10 +1,9 @@
 package hr.java.production.model;
 
-import hr.java.production.exception.ValidationException;
+import hr.java.production.exception.ObjectValidationException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -73,13 +72,13 @@ public class Employee extends Worker {
         public Employee build() {
             validateWorkerFields();
             if (hireDate == null) {
-                throw new ValidationException("Datum zapošljavanja je obavezan");
+                throw new ObjectValidationException("Datum zapošljavanja je obavezan");
             }
             if (department == null) {
-                throw new ValidationException("Odjel je obavezan");
+                throw new ObjectValidationException("Odjel je obavezan");
             }
             if (salary == null || salary.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new ValidationException("Plaća mora biti pozitivna");
+                throw new ObjectValidationException("Plaća mora biti pozitivna");
             }
             return new Employee(
                     id, firstName, lastName, email, phoneNumber, address,
@@ -129,18 +128,6 @@ public class Employee extends Worker {
         return department == Department.FINANCE ? Role.FINANCE : Role.ADMIN;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        Employee employee = (Employee) o;
-        return Objects.equals(hireDate, employee.hireDate) && Objects.equals(terminationDate, employee.terminationDate) && department == employee.department && Objects.equals(salary, employee.salary);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), hireDate, terminationDate, department, salary);
-    }
 
     @Override
     public String toString() {

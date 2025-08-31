@@ -1,10 +1,8 @@
 package hr.java.production.model;
 
 
-import hr.java.production.exception.ValidationException;
+import hr.java.production.exception.ObjectValidationException;
 import hr.java.production.util.ValidationUtils;
-
-import java.util.Objects;
 
 /**
  * Apstraktna klasa Worker predstavlja osnovu za modeliranje različitih radnika s uobičajenim atributima
@@ -17,6 +15,9 @@ public abstract class Worker extends Entity implements Named {
     private String phoneNumber;
     private Address address;
 
+    public Worker(Long id) {
+        super(id);
+    }
 
     protected Worker(String firstName, String lastName, String email, String phoneNumber, Address address) {
         this.firstName = firstName;
@@ -77,15 +78,15 @@ public abstract class Worker extends Entity implements Named {
         /**
          * Ova metoda osigurava da su obavezna polja prije izgradnje radnika
          * validirana. Ako je bilo koje od provjeravanih polja neispravno ili
-         * nedostaje, metoda će baciti {@link ValidationException}.
+         * nedostaje, metoda će baciti {@link ObjectValidationException}.
          *
-         * @throws ValidationException ako bilo koji od uvjeta nije zadovoljen.
+         * @throws ObjectValidationException ako bilo koji od uvjeta nije zadovoljen.
          */
         protected void validateWorkerFields() {
             ValidationUtils.validateString(firstName, "Ime");
             ValidationUtils.validateString(lastName, "Prezime");
             if (address == null)
-                throw new ValidationException("Adresa je obavezna");
+                throw new ObjectValidationException("Adresa je obavezna");
             ValidationUtils.validateEmail(email);
             ValidationUtils.validatePhoneNumber(phoneNumber);
         }
@@ -142,20 +143,6 @@ public abstract class Worker extends Entity implements Named {
     public Worker setAddress(Address address) {
         this.address = address;
         return this;
-    }
-
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        Worker worker = (Worker) o;
-        return Objects.equals(firstName, worker.firstName) && Objects.equals(lastName, worker.lastName) && Objects.equals(email, worker.email) && Objects.equals(phoneNumber, worker.phoneNumber) && Objects.equals(address, worker.address);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), firstName, lastName, email, phoneNumber, address);
     }
 
     @Override

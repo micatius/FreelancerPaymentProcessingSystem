@@ -1,10 +1,9 @@
 package hr.java.production.model;
 
-import hr.java.production.exception.ValidationException;
+import hr.java.production.exception.ObjectValidationException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
  * Klasa koja predstavlja uplatu za određeni račun.
@@ -112,16 +111,16 @@ public class Payment extends Entity {
         @Override
         public Payment build() {
             if (invoice == null) {
-                throw new ValidationException("Račun je obavezan");
+                throw new ObjectValidationException("Račun je obavezan");
             }
             if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new ValidationException("Iznos uplate mora biti pozitivan");
+                throw new ObjectValidationException("Iznos uplate mora biti pozitivan");
             }
             if (paidOn == null) {
-                throw new ValidationException("Datum plaćanja je obavezan");
+                throw new ObjectValidationException("Datum plaćanja je obavezan");
             }
             if (transactionId == null) {
-                throw new ValidationException("ID transakcije je obavezan.");
+                throw new ObjectValidationException("ID transakcije je obavezan.");
             }
             return new Payment(id, invoice, amount, paidOn, transactionId);
         }
@@ -159,18 +158,7 @@ public class Payment extends Entity {
         this.transactionId = transactionId;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        Payment payment = (Payment) o;
-        return Objects.equals(invoice, payment.invoice) && Objects.equals(amount, payment.amount) && Objects.equals(paidOn, payment.paidOn) && Objects.equals(transactionId, payment.transactionId);
-    }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), invoice, amount, paidOn, transactionId);
-    }
 
     @Override
     public String toString() {

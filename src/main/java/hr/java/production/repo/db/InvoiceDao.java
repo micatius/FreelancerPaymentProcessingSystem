@@ -1,14 +1,10 @@
-package hr.java.production.dao.db;
+package hr.java.production.repo.db;
 
-import hr.java.production.exception.DatabaseConnectionException;
-import hr.java.production.exception.DatabaseException;
 import hr.java.production.model.Freelancer;
 import hr.java.production.model.Invoice;
-import hr.java.production.model.Service;
-import hr.java.production.util.DbUtil;
+
 import java.sql.*;
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * Klasa InvoiceDao omogućuje pristup i upravljanje podacima o računima u bazi

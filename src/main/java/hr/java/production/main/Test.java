@@ -1,13 +1,8 @@
 package hr.java.production.main;
 
-import hr.java.production.dao.db.AddressDao;
-import hr.java.production.dao.db.FreelancerDao;
-import hr.java.production.dao.txt.UserDao;
-import hr.java.production.exception.DatabaseAccessException;
+import hr.java.production.repo.db.FreelancerDao;
 import hr.java.production.exception.DatabaseException;
-import hr.java.production.model.Address;
 import hr.java.production.model.Freelancer;
-import hr.java.production.util.PasswordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
