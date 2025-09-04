@@ -66,6 +66,6 @@ public final class ValidationUtils {
     }
 
     // Po potrebi dodaj OIB i IBAN provjere:
-    // public static void validateOib(String oib) { … }
-    // public static void validateIban(String iban) { … }
+    // public static void validateOib(String oib)
+    // public static void validateIban(String iban)
 }

@@ -1,9 +1,17 @@
 package hr.java.production.repo.db;
 
+import hr.java.production.exception.DatabaseConnectionException;
+import hr.java.production.exception.DatabaseException;
 import hr.java.production.model.Address;
 import hr.java.production.model.Freelancer;
+import hr.java.production.util.DbUtil;
 
 import java.sql.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Klasa FreelancerDao pruža metode za pristup i manipulaciju podacima o
@@ -57,6 +65,43 @@ public final class FreelancerDao extends DbDao<Freelancer> {
                 .bankAccountNumber(rs.getString("bank_account"))
                 .active(rs.getBoolean("active"))
                 .build();
+    }
+
+    /**
+     * Dohvaća freelancere po setu ID-eva i vraća mapu id -> Freelancer.
+     */
+    public Map<Long, Freelancer> findByIds(Connection conn, Set<Long> ids) throws SQLException {
+        if (ids == null || ids.isEmpty()) return Collections.emptyMap();
+
+        String placeholders = ids.stream().map(x -> "?").collect(Collectors.joining(","));
+        String sql =
+                "SELECT id, first_name, last_name, email, phone_number, address_id, " +
+                        "business_name, business_id_no, bank_account, active " +
+                        "FROM freelancer WHERE id IN (" + placeholders + ")";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            int i = 1;
+            for (Long id : ids) ps.setLong(i++, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                Map<Long, Freelancer> map = new HashMap<>();
+                while (rs.next()) {
+                    Freelancer f = mapRow(rs);
+                    map.put(f.getId(), f);
+                }
+                return map;
+            }
+        }
+    }
+    /**
+     * Dohvaća freelancere po setu ID-eva i vraća mapu id -> Freelancer.
+     */
+    public Map<Long, Freelancer> findByIds(Set<Long> ids) throws DatabaseException {
+        if (ids == null || ids.isEmpty()) return Collections.emptyMap();
+        try (Connection c = DbUtil.connectToDatabase()) {
+            return findByIds(c, ids);
+        } catch (DatabaseConnectionException | SQLException e) {
+            throw new DatabaseException("Greška u dohvaćanju freelancera po ID-evima", e);
+        }
     }
 
     @Override

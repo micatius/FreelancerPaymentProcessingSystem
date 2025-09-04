@@ -19,6 +19,7 @@ import java.util.Optional;
  */
 public abstract class DbDao<T extends Entity> {
 
+
     protected final Class<T> type;
 
     protected DbDao(Class<T> type) {

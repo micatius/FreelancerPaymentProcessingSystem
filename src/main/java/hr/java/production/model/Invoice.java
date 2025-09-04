@@ -15,7 +15,6 @@ public class Invoice extends Entity {
     private LocalDate invoiceDate;
     private LocalDate dueDate;
     private List<Service> services;
-    private Boolean paid;
 
     private Invoice(Long id) {
         super(id);
@@ -24,23 +23,20 @@ public class Invoice extends Entity {
     protected Invoice(Freelancer freelancer,
                       LocalDate invoiceDate,
                       LocalDate dueDate,
-                      List<Service> services,
-                      Boolean paid) {
-        this(null, freelancer, invoiceDate, dueDate, services, paid);
+                      List<Service> services) {
+        this(null, freelancer, invoiceDate, dueDate, services);
     }
 
     protected Invoice(Long id,
                       Freelancer freelancer,
                       LocalDate invoiceDate,
                       LocalDate dueDate,
-                      List<Service> services,
-                      Boolean paid) {
+                      List<Service> services) {
         super(id);
         this.freelancer = freelancer;
         this.invoiceDate = invoiceDate;
         this.dueDate = dueDate;
         this.services = services;
-        this.paid = paid;
     }
 
     public static class Builder extends Entity.Builder<Invoice, Builder> {
@@ -48,7 +44,6 @@ public class Invoice extends Entity {
         private LocalDate invoiceDate;
         private LocalDate dueDate;
         private List<Service> services = new ArrayList<>();
-        private Boolean paid = false;
 
         public Builder freelancer(Freelancer freelancer) {
             this.freelancer = freelancer;
@@ -75,11 +70,6 @@ public class Invoice extends Entity {
             return self();
         }
 
-        public Builder paid(Boolean paid) {
-            this.paid = paid;
-            return self();
-        }
-
         @Override
         protected Builder self() {
             return this;
@@ -99,10 +89,7 @@ public class Invoice extends Entity {
             if (dueDate.isBefore(invoiceDate)) {
                 throw new ObjectValidationException("Datum dospijeća ne smije biti prije datuma izdavanja");
             }
-            if (services == null || services.isEmpty()) {
-                throw new ObjectValidationException("Račun mora sadržavati bar jednu stavku usluge");
-            }
-            return new Invoice(id, freelancer, invoiceDate, dueDate, services, paid);
+            return new Invoice(id, freelancer, invoiceDate, dueDate, services);
         }
     }
 
@@ -120,16 +107,6 @@ public class Invoice extends Entity {
         return services.stream()
                 .map(Service::calculateTotalCost)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    /**
-     * Provjerava je li račun dospio za plaćanje.
-     *
-     * @param today današnji datum
-     * @return true ako je današnji datum nakon datuma dospijeća i račun nije plaćen
-     */
-    public Boolean isOverdue(LocalDate today) {
-        return !paid && dueDate.isBefore(today);
     }
 
     public Freelancer getFreelancer() {
@@ -164,16 +141,8 @@ public class Invoice extends Entity {
         this.services = services;
     }
 
-    public Boolean isPaid() {
-        return paid;
-    }
-
-    public void setPaid(Boolean paid) {
-        this.paid = paid;
-    }
-
     /**
-     * Dohvaća jedinstveni ID suradniak povezanog s ovom fakturom.
+     * Dohvaća jedinstveni ID suradnika povezanog s ovom fakturom.
      *
      * @return ID freelancera kao Long vrijednost
      */
@@ -190,7 +159,6 @@ public class Invoice extends Entity {
                 ", invoiceDate=" + invoiceDate +
                 ", dueDate=" + dueDate +
                 ", services=" + services +
-                ", paid=" + paid +
                 '}';
     }
 }

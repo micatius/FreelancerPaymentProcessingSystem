@@ -9,8 +9,7 @@ import java.time.LocalDate;
 /**
  * Klasa InvoiceDao omogućuje pristup i upravljanje podacima o računima u bazi
  * podataka. Proširuje osnovne funkcionalnosti klase DbDao i uključuje
- * implementacije za umetanje, ažuriranje, brisanje i dohvaćanje računa, uz
- * podršku za rad s pripadajućim uslugama (services) povezanima s računima.
+ * implementacije za umetanje, ažuriranje, brisanje i dohvaćanje računa
  */
 public final class InvoiceDao extends DbDao<Invoice> {
 
@@ -20,16 +19,15 @@ public final class InvoiceDao extends DbDao<Invoice> {
 
     @Override
     protected void bindInsert(PreparedStatement ps, Invoice inv) throws SQLException {
-        ps.setLong(1, inv.getFreelancerId());                 // NOT NULL
-        ps.setDate(2, Date.valueOf(inv.getInvoiceDate()));    // NOT NULL
-        ps.setDate(3, Date.valueOf(inv.getDueDate()));        // NOT NULL
-        ps.setBoolean(4, inv.isPaid());                       // NOT NULL
+        ps.setLong(1, inv.getFreelancerId());
+        ps.setDate(2, Date.valueOf(inv.getInvoiceDate()));
+        ps.setDate(3, Date.valueOf(inv.getDueDate()));
     }
 
     @Override
     protected void bindUpdate(PreparedStatement ps, Invoice inv) throws SQLException {
-        bindInsert(ps, inv);          // 1..4
-        ps.setLong(5, inv.getId());   // WHERE id=?
+        bindInsert(ps, inv);
+        ps.setLong(4, inv.getId());
     }
 
     @Override
@@ -38,7 +36,6 @@ public final class InvoiceDao extends DbDao<Invoice> {
         long freelancerId = rs.getLong("freelancer_id");
         LocalDate invDate = rs.getDate("invoice_date").toLocalDate();
         LocalDate dueDate = rs.getDate("due_date").toLocalDate();
-        boolean paid      = rs.getBoolean("paid");
 
         Freelancer freelancerRef = Freelancer.ref(freelancerId);
 
@@ -47,7 +44,6 @@ public final class InvoiceDao extends DbDao<Invoice> {
                 .freelancer(freelancerRef)
                 .invoiceDate(invDate)
                 .dueDate(dueDate)
-                .paid(paid)
                 .build();
     }
 
@@ -57,9 +53,8 @@ public final class InvoiceDao extends DbDao<Invoice> {
             INSERT INTO invoice (
               freelancer_id,
               invoice_date,
-              due_date,
-              paid
-            ) VALUES (?, ?, ?, ?)
+              due_date
+            ) VALUES (?, ?, ?)
             """;
     }
 
@@ -69,8 +64,7 @@ public final class InvoiceDao extends DbDao<Invoice> {
             UPDATE invoice SET
               freelancer_id = ?,
               invoice_date  = ?,
-              due_date      = ?,
-              paid          = ?
+              due_date      = ?
             WHERE id = ?
             """;
     }
@@ -87,8 +81,7 @@ public final class InvoiceDao extends DbDao<Invoice> {
               id,
               freelancer_id,
               invoice_date,
-              due_date,
-              paid
+              due_date
             FROM invoice
             WHERE id = ?
             """;
@@ -101,8 +94,7 @@ public final class InvoiceDao extends DbDao<Invoice> {
               id,
               freelancer_id,
               invoice_date,
-              due_date,
-              paid
+              due_date
             FROM invoice
             ORDER BY id
             """;

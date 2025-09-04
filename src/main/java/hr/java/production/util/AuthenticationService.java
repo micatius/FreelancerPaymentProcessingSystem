@@ -15,7 +15,7 @@ public class AuthenticationService {
      * @return korisnik koji je uspješno validiran
      * @throws AuthenticationException ako korisnik ne postoji ili je lozinka neispravna
      */
-    public User login(String username, String passwordPlaintext) {
+    public User login(String username, String passwordPlaintext) throws AuthenticationException {
         User user = userDao.findByUsername(username)
                 .orElseThrow(() -> new AuthenticationException("Ne postoji korisnik"));
 

@@ -7,8 +7,8 @@ import hr.java.production.util.DbUtil;
 
 import java.math.BigDecimal;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Klasa ServiceDao upravlja operacijama pristupa podatcima u bazi koje su
@@ -79,6 +79,46 @@ public final class ServiceDao extends DbDao<Service> {
             return findByInvoiceId(conn, invoiceId);
         } catch (SQLException | DatabaseConnectionException e) {
             throw new DatabaseException("Greška pri dohvaćanju service stavki za račun ID=" + invoiceId, e);
+        }
+    }
+
+    /**
+     * Dohvaća mapu usluga grupiranih prema ID-jevima faktura.
+     *
+     * @param conn konekcija na bazu podataka
+     * @param invoiceIds skup ID-jeva faktura za koje se dohvaćaju usluge
+     * @return mapa gdje je ključ ID fakture, a vrijednost lista objekata klase Service povezanih s tom fakturom
+     * @throws SQLException u slučaju greške prilikom pristupa bazi podataka
+     */
+    public Map<Long, List<Service>> findByInvoiceIds(Connection conn, Set<Long> invoiceIds) throws SQLException {
+        if (invoiceIds == null || invoiceIds.isEmpty()) return Collections.emptyMap();
+
+        String placeholders = invoiceIds.stream().map(x -> "?").collect(Collectors.joining(","));
+        String sql = "SELECT id, invoice_id, service_name, unit_fee, quantity " +
+                "FROM service WHERE invoice_id IN (" + placeholders + ") " +
+                "ORDER BY invoice_id, id";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            int i = 1;
+            for (Long id : invoiceIds) ps.setLong(i++, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                Map<Long, List<Service>> map = new HashMap<>();
+                while (rs.next()) {
+                    Service s = mapRow(rs);
+                    map.computeIfAbsent(s.getInvoiceId(), k -> new ArrayList<>()).add(s);
+                }
+                return map;
+            }
+        }
+    }
+
+    public Map<Long, List<Service>> findByInvoiceIds(Set<Long> invoiceIds) throws DatabaseException {
+        if (invoiceIds == null || invoiceIds.isEmpty()) return Collections.emptyMap();
+        try (Connection c = DbUtil.connectToDatabase()) {
+            return findByInvoiceIds(c, invoiceIds);
+        }
+        catch (SQLException | DatabaseConnectionException e) {
+            throw new DatabaseException("Dogodila se greška pri dohvaćanju faktura po Id-evima", e);
         }
     }
 

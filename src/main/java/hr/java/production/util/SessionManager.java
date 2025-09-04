@@ -4,8 +4,8 @@ import hr.java.production.model.User;
 
 /**
  * Klasa koja upravlja trenutnom sesijom korisnika.
- * Omogućuje postavljanje, dohvaćanje i brisanje trenutnog korisnika,
- * kao i dohvaćanje korisničkog imena trenutnog korisnika.
+ * Omogućuje postavljanje korisnika
+ * i dohvaćanje korisničkog imena trenutnog korisnika.
  */
 public final class SessionManager {
     private static User currentUser;

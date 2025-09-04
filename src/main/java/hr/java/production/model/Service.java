@@ -30,6 +30,22 @@ public class Service extends Entity implements Named {
         private BigDecimal unitFee;
         private Integer quantity;
 
+        public Builder() { }
+
+        /**
+         * Builder koji inicijalizira vrijednosti iz postojećeg Service objekta.
+         *
+         * @param other postojeći Service čije vrijednosti treba kopirati
+         */
+        public Builder(Service other) {
+            this.id = other.getId();
+            this.invoiceId = other.getInvoiceId();
+            this.serviceName = other.getName();
+            this.unitFee = other.getUnitFee();
+            this.quantity = other.getQuantity();
+        }
+
+
         public Builder invoiceId(Long invoiceId) {
             this.invoiceId = invoiceId;
             return self();

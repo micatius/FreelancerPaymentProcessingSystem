@@ -19,10 +19,12 @@ public class PaymentApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(PaymentApplication.class.getResource("login-screen.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
+        Scene scene = new Scene(fxmlLoader.load(), 640, 480);
         stage.setTitle("Login");
         stage.setScene(scene);
+        stage.setResizable(false);
         stage.show();
+
 
 
     }

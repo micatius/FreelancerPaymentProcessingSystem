@@ -3,30 +3,24 @@ package hr.java.production.service;
 import hr.java.production.exception.DatabaseException;
 import hr.java.production.log.BinaryChangeLogger;
 import hr.java.production.log.ChangeLogger;
-import hr.java.production.repo.db.AddressDao;
-import hr.java.production.repo.db.FreelancerDao;
-import hr.java.production.repo.db.InvoiceDao;
-import hr.java.production.repo.db.PaymentDao;
-import hr.java.production.repo.db.ServiceDao;
-import hr.java.production.exception.DatabaseConnectionException;
 import hr.java.production.model.Address;
 import hr.java.production.model.Freelancer;
 import hr.java.production.model.Invoice;
 import hr.java.production.model.Payment;
 import hr.java.production.model.Service;
-import hr.java.production.util.DbUtil;
+import hr.java.production.repo.db.AddressDao;
+import hr.java.production.repo.db.FreelancerDao;
+import hr.java.production.repo.db.InvoiceDao;
+import hr.java.production.repo.db.PaymentDao;
+import hr.java.production.repo.db.ServiceDao;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
-/**
- * Servis za rad s računima (Invoice) uključujući transakcijsko spremanje stavki (Service) i uplata (Payment)
- * te detaljno čitanje s hidracijom povezanih entiteta.
- */
-public final class InvoiceService {
+public final class InvoiceService extends TransactionService {
+    private static final String NO_INVOICE_ID = "Račun ne postoji: id=";
 
     private final InvoiceDao invoiceDao;
     private final ServiceDao serviceDao;
@@ -50,228 +44,185 @@ public final class InvoiceService {
     }
 
     public InvoiceService() {
-        this(new InvoiceDao(),
-                new ServiceDao(),
-                new PaymentDao(),
-                new FreelancerDao(),
-                new AddressDao(),
-                new BinaryChangeLogger());
+        this(new InvoiceDao(), new ServiceDao(), new PaymentDao(), new FreelancerDao(), new AddressDao(), new BinaryChangeLogger());
     }
 
-    /**
-     * Kreira račun i sve pripadajuće stavke/ uplate u jednoj transakciji.
-     *
-     * @param invoice  račun koji se sprema (mora imati postavljenog freelancera kao ref(id))
-     * @param services lista stavki za taj račun (svakoj se postavlja invoiceId)
-     * @param payments lista uplata za taj račun (svakoj se postavlja Invoice.ref(generatedId))
-     * @return spremljeni račun s generiranim ID-om
-     * @throws DatabaseException u slučaju greške pri spremanju
-     */
-    public Invoice create(Invoice invoice, List<Service> services, List<Payment> payments) throws DatabaseException {
-        try (Connection conn = DbUtil.connectToDatabase()) {
-            conn.setAutoCommit(false);
-            try {
-                // 1) spremi račun (dobiva ID)
-                invoiceDao.save(conn, invoice);
-                Long invId = invoice.getId();
+    /* ---------------------------- write operations ---------------------------- */
 
-                // 2) spremi stavke (postavi invoiceId)
-                if (services != null) {
-                    for (Service s : services) {
-                        Service toSave = new Service.Builder(s).invoiceId(invId).build();
-                        serviceDao.save(conn, toSave);
-                    }
+
+    /** Kreira fakturu (+stavke) i vraća potpuno hidrirani pogled. */
+    public Long save(Invoice invoice) throws DatabaseException {
+        return inTransaction(conn -> {
+            invoiceDao.save(conn, invoice);
+            Long invId = invoice.getId();
+
+            // persist services if present
+            List<Service> services = invoice.getServices();
+            if (services != null) {
+                for (Service s : services) {
+                    s.setInvoiceId(invId);
+                    serviceDao.save(conn, s);
                 }
-
-                // 3) spremi uplate (postavi Invoice.ref(id))
-                if (payments != null) {
-                    for (Payment p : payments) {
-                        Payment toSave = new Payment.Builder(p).invoice(Invoice.ref(invId)).build();
-                        paymentDao.save(conn, toSave);
-                    }
-                }
-
-                conn.commit();
-
-                // after-commit logging
-                changeLogger.logCreate(invoice);
-
-                return invoice;
-            } catch (Exception e) {
-                try { conn.rollback(); } catch (SQLException ignored) {}
-                if (e instanceof DatabaseException dae) throw dae;
-                throw new DatabaseException("Greška pri kreiranju računa", e);
-            } finally {
-                try { conn.setAutoCommit(true); } catch (SQLException ignored) {}
             }
-        } catch (DatabaseConnectionException | SQLException e) {
-            throw new DatabaseException("Greška pri uspostavi veze prema bazi", e);
-        }
+
+            changeLogger.logCreate(invoice);
+            return invId;
+        }, "Greška pri kreiranju računa");
     }
 
-    /**
-     * Ažurira račun te zamjenjuje sve stavke i uplate novim listama (jednostavan model).
-     *
-     * @param updated  novi sadržaj računa (isti ID kao postojeći)
-     * @param services nove stavke
-     * @param payments nove uplate
-     * @return ažurirani račun
-     * @throws DatabaseException u slučaju greške pri spremanju
-     */
-    public Invoice update(Invoice updated, List<Service> services, List<Payment> payments) throws DatabaseException {
-        try (Connection conn = DbUtil.connectToDatabase()) {
-            conn.setAutoCommit(false);
-            try {
-                // snapshot starog stanja samo za logiranje
-                Invoice old = invoiceDao.findById(conn, updated.getId())
-                        .orElseThrow(() -> new DatabaseException("Račun ne postoji: id=" + updated.getId()));
+    /** Ažurira fakturu, zamjenjuje stavke i vraća potpuno hidrirani pogled. */
+    public void update(Invoice updated) throws DatabaseException {
+        inTransaction(conn -> {
+            Long invId = Objects.requireNonNull(updated.getId(), "ID ne smije biti null");
+            Invoice old = invoiceDao.findById(conn, invId)
+                    .orElseThrow(() -> new DatabaseException(NO_INVOICE_ID + invId));
 
-                // 1) ažuriraj račun
-                invoiceDao.update(conn, updated);
+            invoiceDao.update(conn, updated);
 
-                Long invId = updated.getId();
-
-                // 2) osvježi stavke: briši sve → dodaj nove
-                serviceDao.deleteByInvoiceId(conn, invId);
-                if (services != null) {
-                    for (Service s : services) {
-                        Service toSave = new Service.Builder(s).invoiceId(invId).build();
-                        serviceDao.save(conn, toSave);
-                    }
+            // replace services
+            serviceDao.deleteByInvoiceId(conn, invId);
+            List<Service> services = updated.getServices();
+            if (services != null) {
+                for (Service s : services) {
+                    s.setInvoiceId(invId);
+                    serviceDao.save(conn, s);
                 }
-
-                // 3) osvježi uplate
-                paymentDao.deleteByInvoiceId(conn, invId);
-                if (payments != null) {
-                    for (Payment p : payments) {
-                        Payment toSave = new Payment.Builder(p).invoice(Invoice.ref(invId)).build();
-                        paymentDao.save(conn, toSave);
-                    }
-                }
-
-                conn.commit();
-
-                // after-commit logging
-                changeLogger.logUpdate(old, updated);
-
-                return updated;
-            } catch (Exception e) {
-                try { conn.rollback(); } catch (SQLException ignored) {}
-                if (e instanceof DatabaseException dae) throw dae;
-                throw new DatabaseException("Greška pri ažuriranju računa", e);
-            } finally {
-                try { conn.setAutoCommit(true); } catch (SQLException ignored) {}
             }
-        } catch (DatabaseConnectionException | SQLException e) {
-            throw new DatabaseException("Greška pri uspostavi veze prema bazi", e);
-        }
+
+            changeLogger.logUpdate(old, updated);
+            return null;
+        }, "Greška pri ažuriranju računa");
     }
 
-    /**
-     * Briše račun i sve povezane stavke/ uplate u jednoj transakciji.
-     *
-     * @param invoiceId ID računa koji se briše
-     * @throws DatabaseException u slučaju greške pri brisanju
-     */
+    /** Briše fakturu i sve povezane entitete. */
     public void delete(Long invoiceId) throws DatabaseException {
-        try (Connection conn = DbUtil.connectToDatabase()) {
-            conn.setAutoCommit(false);
-            try {
-                Invoice old = invoiceDao.findById(conn, invoiceId)
-                        .orElseThrow(() -> new DatabaseException("Račun ne postoji: id=" + invoiceId));
+        inTransaction(conn -> {
+            Invoice old = invoiceDao.findById(conn, invoiceId)
+                    .orElseThrow(() -> new DatabaseException(NO_INVOICE_ID + invoiceId));
 
-                // redoslijed: djeca pa roditelj
-                serviceDao.deleteByInvoiceId(conn, invoiceId);
-                paymentDao.deleteByInvoiceId(conn, invoiceId);
-                invoiceDao.delete(conn, invoiceId);
+            serviceDao.deleteByInvoiceId(conn, invoiceId);
+            paymentDao.deleteByInvoiceId(conn, invoiceId);
+            invoiceDao.delete(conn, invoiceId);
 
-                conn.commit();
-
-                // after-commit logging
-                changeLogger.logDelete(old);
-
-            } catch (Exception e) {
-                try { conn.rollback(); } catch (SQLException ignored) {}
-                if (e instanceof DatabaseException dae) throw dae;
-                throw new DatabaseException("Greška pri brisanju računa", e);
-            } finally {
-                try { conn.setAutoCommit(true); } catch (SQLException ignored) {}
-            }
-        } catch (DatabaseConnectionException | SQLException e) {
-            throw new DatabaseException("Greška pri uspostavi veze prema bazi", e);
-        }
+            changeLogger.logDelete(old);
+            return null;
+        }, "Greška pri brisanju računa");
     }
 
-    /**
-     * Vraća detaljan prikaz računa: račun + freelancer (+adresa) + stavke + uplate.
-     *
-     * @param invoiceId ID računa
-     * @return detaljni pogled
-     * @throws DatabaseException u slučaju greške pri čitanju
-     */
-    public InvoiceView getDetailed(Long invoiceId) throws DatabaseException {
-        try (Connection conn = DbUtil.connectToDatabase()) {
-            conn.setAutoCommit(false);
-            try {
-                Invoice invoice = invoiceDao.findById(conn, invoiceId)
-                        .orElseThrow(() -> new DatabaseException("Račun ne postoji: id=" + invoiceId));
+    /* ----------------------------- read operations ----------------------------- */
 
-                // hydrate freelancer (+address)
-                Freelancer freelancer = null;
-                Address address = null;
-                if (invoice.getFreelancer() != null && invoice.getFreelancer().getId() != null) {
-                    Long freelancerId = invoice.getFreelancer().getId();
-                    freelancer = freelancerDao.findById(conn, freelancerId).orElse(null);
+    /** Vraća potpuno hidriran Optional prikaz jednog računa. */
+    public Optional<InvoiceView> findById(Long id) throws DatabaseException {
+        return inTransaction(conn -> {
+            Optional<Invoice> base = invoiceDao.findById(conn, id);
+            if (base.isEmpty()) return Optional.empty();
+            return Optional.of(toView(conn, base.get()));   // single-invoice toView
+        }, "Greška pri čitanju računa po ID-u");
+    }
 
-                    if (freelancer != null && freelancer.getAddress() != null && freelancer.getAddress().getId() != null) {
-                        address = addressDao.findById(conn, freelancer.getAddress().getId()).orElse(null);
-                    }
+    /** Vraća SVE račune potpuno hidrirane — koristi batch toView za nisku složenost i visoku izvedbu. */
+    public List<InvoiceView> findAll() throws DatabaseException {
+        return inTransaction(conn -> {
+            List<Invoice> invoices = invoiceDao.findAll(conn);
+            if (invoices.isEmpty()) return List.of();
+            return toView(conn, invoices);
+        }, "Greška pri čitanju svih računa");
+    }
+
+    /* ----------------------------- toView helpers ----------------------------- */
+
+    /** Single-invoice toView: loads Freelancer (+Address), Services, Payment. */
+    private InvoiceView toView(Connection conn, Invoice invoice) throws DatabaseException {
+        try {
+            // freelancer (+address)
+            if (invoice.getFreelancer() != null && invoice.getFreelancer().getId() != null) {
+                Long fId = invoice.getFreelancer().getId();
+                Freelancer f = freelancerDao.findById(conn, fId).orElse(null);
+                if (f != null && f.getAddress() != null && f.getAddress().getId() != null) {
+                    Address a = addressDao.findById(conn, f.getAddress().getId()).orElse(null);
+                    if (a != null) f.setAddress(a);
                 }
-
-                // load children
-                List<Service> services = serviceDao.findByInvoiceId(conn, invoiceId);
-                List<Payment> payments = paymentDao.findByInvoiceId(conn, invoiceId);
-
-                conn.commit();
-                return new InvoiceView(invoice, freelancer, address, services, payments);
-            } catch (Exception e) {
-                try { conn.rollback(); } catch (SQLException ignored) {}
-                if (e instanceof DatabaseException dae) throw dae;
-                throw new DatabaseException("Greška pri čitanju detalja računa", e);
-            } finally {
-                try { conn.setAutoCommit(true); } catch (SQLException ignored) {}
+                if (f != null) invoice.setFreelancer(f);
             }
-        } catch (DatabaseConnectionException | SQLException e) {
-            throw new DatabaseException("Greška pri uspostavi veze prema bazi", e);
+
+            List<Service> services = serviceDao.findByInvoiceId(conn, invoice.getId());
+            invoice.setServices(services);
+
+            Payment payment = paymentDao.findByInvoiceId(conn, invoice.getId()).orElse(null);
+
+            return new InvoiceView(invoice, payment);
+        } catch (Exception e) {
+            throw (e instanceof DatabaseException de) ? de
+                    : new DatabaseException("Greška pri konverziji računa u pogled (id=" + invoice.getId() + ")", e);
         }
     }
 
     /**
-     * Jednostavno dohvaćanje računa po ID-u (bez hidracije).
+     * Batch toView: performs O(1) queries per table (no N+1) and stitches views.
      */
-    public Optional<Invoice> findById(Long id) throws DatabaseException {
-        try (Connection conn = DbUtil.connectToDatabase()) {
-            return invoiceDao.findById(conn, id);
-        } catch (DatabaseConnectionException | SQLException e) {
-            throw new DatabaseException("Greška pri čitanju računa po ID-u", e);
+    private List<InvoiceView> toView(Connection conn, List<Invoice> invoices) throws DatabaseException {
+        try {
+            Set<Long> invoiceIds = invoices.stream().map(Invoice::getId).collect(Collectors.toSet());
+            Set<Long> freelancerIds = invoices.stream()
+                    .map(inv -> inv.getFreelancer() != null ? inv.getFreelancer().getId() : null)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+
+
+            Map<Long, Freelancer> freelancers = freelancerDao.findByIds(conn, freelancerIds);
+
+            Set<Long> addressIds = freelancers.values().stream()
+                    .map(f -> f.getAddress() != null ? f.getAddress().getId() : null)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            Map<Long, Address> addresses = addressDao.findByIds(conn, addressIds);
+
+            Map<Long, List<Service>> servicesByInv = serviceDao.findByInvoiceIds(conn, invoiceIds);
+
+            Map<Long, Payment> paymentByInv = paymentDao.findByInvoiceIds(conn, invoiceIds);
+
+            for (Invoice inv : invoices) {
+                if (inv.getFreelancer() != null && inv.getFreelancer().getId() != null) {
+                    Freelancer f = freelancers.get(inv.getFreelancer().getId());
+                    if (f != null && f.getAddress() != null && f.getAddress().getId() != null) {
+                        Address a = addresses.get(f.getAddress().getId());
+                        if (a != null) f.setAddress(a);
+                    }
+                    if (f != null) inv.setFreelancer(f);
+                }
+                // services
+                List<Service> svcs = servicesByInv.get(inv.getId());
+                if (svcs != null) inv.setServices(svcs);
+            }
+
+            List<InvoiceView> out = new ArrayList<>(invoices.size());
+            for (Invoice inv : invoices) {
+                out.add(new InvoiceView(inv, paymentByInv.get(inv.getId())));
+            }
+            return out;
+
+        } catch (Exception e) {
+            throw (e instanceof DatabaseException de) ? de
+                    : new DatabaseException("Greška pri batch konverziji računa u poglede", e);
         }
     }
 
     /**
-     * Vraća sve račune (bez hidracije).
-     */
-    public List<Invoice> findAll() throws DatabaseException {
-        return invoiceDao.findAll(); // koristi DAO convenience metodu
-    }
-
-    /**
-     * DTO pogled na račun s kompletno učitanim povezanim entitetima.
+     * Predstavlja prikaz fakture sa svim relevantnim podacima, uključujući informacije o uplati.
+     * Omogućuje provjeru statusa plaćenosti na temelju vezane uplate.
      */
     public record InvoiceView(
             Invoice invoice,
-            Freelancer freelancer,
-            Address address,
-            List<Service> services,
-            List<Payment> payments
-    ) {}
+            Payment payment
+    ) {
+
+        /**
+         * Provjerava je li faktura plaćena na temelju postojanja uplate.
+         *
+         * @return true ako postoji povezana uplata, inače false
+         */
+        public boolean isPaid() {
+            return payment != null;
+        }
+    }
 }

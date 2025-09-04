@@ -11,7 +11,7 @@ public final class Freelancer extends Worker {
     private String businessName;
     private String businessIdentificationNumber;
     private String bankAccountNumber;
-    private Boolean active;
+    private boolean active;
 
     private Freelancer(Long id) {
         super(id);
@@ -30,7 +30,7 @@ public final class Freelancer extends Worker {
         private String businessName;
         private String businessIdentificationNumber;
         private String bankAccountNumber;
-        private Boolean active;
+        private boolean active;
 
         public Builder businessName(String businessName) {
             this.businessName = businessName;
@@ -47,7 +47,7 @@ public final class Freelancer extends Worker {
             return self();
         }
 
-        public Builder active(Boolean active) {
+        public Builder active(boolean active) {
             this.active = active;
             return self();
         }
@@ -68,9 +68,6 @@ public final class Freelancer extends Worker {
             }
             if (bankAccountNumber == null || !bankAccountNumber.matches("^HR\\d{2}[0-9A-Z]{17}$")) {
                 throw new ObjectValidationException("Broj bankovnog računa mora biti valjan IBAN");
-            }
-            if (active == null) {
-                throw new ObjectValidationException("Status aktivnosti mora biti postavljen");
             }
             return new Freelancer(this);
         }
@@ -118,11 +115,11 @@ public final class Freelancer extends Worker {
         return this;
     }
 
-    public Boolean getActive() {
+    public boolean getActive() {
         return active;
     }
 
-    public Freelancer setActive(Boolean active) {
+    public Freelancer setActive(boolean active) {
         this.active = active;
         return this;
     }

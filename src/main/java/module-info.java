@@ -5,6 +5,7 @@ module hr.java {
     requires java.sql;
     requires spring.security.crypto;
     requires org.jetbrains.annotations;
+    requires javafx.base;
 
     exports hr.java.production.model;
     exports hr.java.production.main;

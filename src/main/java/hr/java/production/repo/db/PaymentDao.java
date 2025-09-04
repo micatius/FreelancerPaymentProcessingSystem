@@ -6,10 +6,11 @@ import hr.java.production.model.Invoice;
 import hr.java.production.model.Payment;
 import hr.java.production.util.DbUtil;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public final class PaymentDao extends DbDao<Payment> {
     private static final String SELECT_BY_INVOICE_ID_SQL =
@@ -48,9 +49,9 @@ public final class PaymentDao extends DbDao<Payment> {
 
     @Override
     protected Payment mapRow(ResultSet rs) throws SQLException {
-        long id         = rs.getLong("id");
-        long invoiceId  = rs.getLong("invoice_id");
-        var amount      = rs.getBigDecimal("amount");
+        Long id         = rs.getLong("id");
+        Long invoiceId  = rs.getLong("invoice_id");
+        BigDecimal amount      = rs.getBigDecimal("amount");
         LocalDateTime t = rs.getTimestamp("paid_on").toLocalDateTime();
         String txId     = rs.getString("transaction_id");
 
@@ -65,24 +66,25 @@ public final class PaymentDao extends DbDao<Payment> {
                 .build();
     }
 
-    public List<Payment> findByInvoiceId(long invoiceId) throws DatabaseException {
-        try (Connection conn = DbUtil.connectToDatabase()) {
-            return findByInvoiceId(conn, invoiceId);
-        } catch (SQLException | DatabaseConnectionException e) {
-            throw new DatabaseException("Greška pri dohvaćanju uplata za račun ID=" + invoiceId, e);
-        }
-    }
-
-    public List<Payment> findByInvoiceId(Connection conn, long invoiceId) throws DatabaseException {
-        List<Payment> list = new ArrayList<>();
+    public Optional<Payment> findByInvoiceId(Connection conn, long invoiceId) throws SQLException {
         try (PreparedStatement ps = conn.prepareStatement(SELECT_BY_INVOICE_ID_SQL)) {
             ps.setLong(1, invoiceId);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) list.add(mapRow(rs));
+                if (!rs.next()) return Optional.empty();
+                Payment first = mapRow(rs);
+                if (rs.next()) {
+                    throw new SQLException("Više uplata pronađeno za invoice_id=" + invoiceId);
+                }
+                return Optional.of(first);
             }
-            return list;
-        } catch (SQLException e) {
-            throw new DatabaseException("Greška pri dohvaćanju uplata za račun ID=" + invoiceId, e);
+        }
+    }
+
+    public Optional<Payment> findByInvoiceId(long invoiceId) throws DatabaseException {
+        try (Connection conn = DbUtil.connectToDatabase()) {
+            return findByInvoiceId(conn, invoiceId);
+        } catch (SQLException | DatabaseConnectionException e) {
+            throw new DatabaseException("Greška pri dohvaćanju uplate za račun ID=" + invoiceId, e);
         }
     }
 
@@ -97,9 +99,54 @@ public final class PaymentDao extends DbDao<Payment> {
     public void deleteByInvoiceId(Connection conn, long invoiceId) throws DatabaseException {
         try (PreparedStatement ps = conn.prepareStatement(DELETE_BY_INVOICE_ID_SQL)) {
             ps.setLong(1, invoiceId);
-            ps.executeUpdate(); // 0+ redaka
+            ps.executeUpdate();
         } catch (SQLException e) {
             throw new DatabaseException("Greška pri brisanju uplata za račun ID=" + invoiceId, e);
+        }
+    }
+
+    /**
+     * Dohvaća mapu u kojoj su ključevi ID-evi faktura, a vrijednosti odgovarajući objekti Payment,
+     * na temelju proslijeđenih ID-eva faktura.
+     *
+     * @param conn       otvoreni {@link Connection} prema bazi podataka
+     * @param invoiceIds skup ID-eva faktura za pretragu
+     * @return mapa koja mapira ID faktura na odgovarajući objekt {@link Payment};
+     *         prazna mapa ako nisu pronađene odgovarajuće uplate
+     * @throws SQLException ako dođe do greške prilikom pristupa bazi podataka
+     */
+    public Map<Long, Payment> findByInvoiceIds(Connection conn, Set<Long> invoiceIds) throws SQLException {
+        if (invoiceIds == null || invoiceIds.isEmpty()) return Collections.emptyMap();
+
+        String placeholders = invoiceIds.stream().map(x -> "?").collect(Collectors.joining(","));
+        String sql = "SELECT id, invoice_id, amount, paid_on, transaction_id " +
+                "FROM payment WHERE invoice_id IN (" + placeholders + ")";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            int i = 1;
+            for (Long id : invoiceIds) ps.setLong(i++, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                Map<Long, Payment> map = new HashMap<>();
+                while (rs.next()) {
+                    Payment p = mapRow(rs);
+                    Long invId = p.getInvoice().getId();
+                    if (map.putIfAbsent(invId, p) != null) {
+                        throw new SQLException("Više uplata pronađeno za invoice_id=" + invId);
+                    }
+                }
+                return map;
+            }
+        }
+    }
+
+    public Map<Long, Payment> findByInvoiceIds(Set<Long> invoiceIds) throws DatabaseException {
+        if (invoiceIds == null || invoiceIds.isEmpty()) return Collections.emptyMap();
+        try (Connection c = DbUtil.connectToDatabase()) {
+            return findByInvoiceIds(c, invoiceIds);
+        }
+        catch (SQLException | DatabaseConnectionException e) {
+            throw new DatabaseException("Greška u dohvaćanju uplata po ID-evima faktura", e);
         }
     }
 

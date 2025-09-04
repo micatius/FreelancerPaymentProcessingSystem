@@ -46,7 +46,6 @@ CREATE TABLE invoice (
                          freelancer_id LONG NOT NULL,
                          invoice_date DATE NOT NULL,
                          due_date DATE NOT NULL,
-                         paid BOOLEAN NOT NULL DEFAULT FALSE,
                          FOREIGN KEY(freelancer_id) REFERENCES freelancer(id)
 );
 
