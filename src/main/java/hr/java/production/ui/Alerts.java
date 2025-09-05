@@ -35,6 +35,7 @@ public class Alerts {
         Alert a = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK);
         a.setHeaderText(null);
         a.setTitle("Info");
+        log.info("Informacija korisniku: {}", message);
         a.showAndWait();
     }
 

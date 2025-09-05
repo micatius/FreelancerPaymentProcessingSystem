@@ -11,6 +11,5 @@ module hr.java {
     exports hr.java.production.main;
     exports hr.java.production.log;
     opens hr.java.production.main to javafx.fxml;
-//    exports hr.java.production.controller;
     opens hr.java.production.controller to javafx.fxml;
 }

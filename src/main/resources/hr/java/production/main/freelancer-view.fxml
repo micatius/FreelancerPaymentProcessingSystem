@@ -61,14 +61,14 @@
                         <Insets left="10.0" right="10.0" />
                     </GridPane.margin>
                 </TextField>
-                <CheckBox fx:id="activeCheckBox" allowIndeterminate="true" indeterminate="true" mnemonicParsing="false" selected="true" text="Aktivan?" GridPane.columnIndex="4">
+                <CheckBox fx:id="activeCheckBox" allowIndeterminate="true" indeterminate="true" mnemonicParsing="false" onAction="#applyFilters" selected="true" text="Aktivan?" GridPane.columnIndex="4">
                <padding>
                   <Insets left="10.0" />
                </padding></CheckBox>
-            <Button mnemonicParsing="false" onAction="#onAddFreelancer" text="DODAJ" GridPane.columnIndex="7" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-            <Button mnemonicParsing="false" onAction="#onEditFreelancer" text="UREDI" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-            <Button mnemonicParsing="false" onAction="#onDeleteFreelancer" text="IZBRIŠI" textFill="#ff0b0b" GridPane.columnIndex="7" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
-            <Button mnemonicParsing="false" onAction="#onViewFreelancer" text="PREGLED" GridPane.columnIndex="5" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+            <Button fx:id="addButton" mnemonicParsing="false" onAction="#onAddFreelancer" text="DODAJ" GridPane.columnIndex="7" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+            <Button fx:id="editButton" mnemonicParsing="false" onAction="#onEditFreelancer" text="UREDI" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+            <Button fx:id="deleteButton" mnemonicParsing="false" onAction="#onDeleteFreelancer" text="IZBRIŠI" textFill="#ff0b0b" GridPane.columnIndex="7" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+            <Button fx:id="viewButton" mnemonicParsing="false" onAction="#onViewFreelancer" text="PREGLED" GridPane.columnIndex="5" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
             </children>
         </GridPane>
     </children>

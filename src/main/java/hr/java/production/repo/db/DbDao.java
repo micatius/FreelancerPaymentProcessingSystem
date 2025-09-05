@@ -4,7 +4,7 @@ import hr.java.production.exception.DatabaseAccessException;
 import hr.java.production.exception.DatabaseConnectionException;
 import hr.java.production.exception.DatabaseException;
 import hr.java.production.model.Entity;
-import hr.java.production.util.DbUtil;
+import hr.java.production.util.DbUtils;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +60,7 @@ public abstract class DbDao<T extends Entity> {
      * @throws DatabaseAccessException ako dođe do greške prilikom pristupa bazi podataka
      */
     public final void save(T entity) throws DatabaseException {
-        try (Connection conn = DbUtil.connectToDatabase()) {
+        try (Connection conn = DbUtils.connectToDatabase()) {
             save(conn, entity);
         } catch (SQLException | DatabaseConnectionException e) {
             throw new DatabaseException("Greška pri spremanju " + type.getSimpleName(), e);
@@ -102,7 +102,7 @@ public abstract class DbDao<T extends Entity> {
     public final void update(T entity) throws DatabaseException {
         if (entity.getId() == null)
             throw new DatabaseException("ID je obavezan za ažuriranje " + type.getSimpleName());
-        try (Connection conn = DbUtil.connectToDatabase()) {
+        try (Connection conn = DbUtils.connectToDatabase()) {
             update(conn, entity);
         } catch (SQLException | DatabaseConnectionException e) {
             throw new DatabaseException("Greška pri ažuriranju " + type.getSimpleName(), e);
@@ -140,7 +140,7 @@ public abstract class DbDao<T extends Entity> {
      * @throws DatabaseException ako dođe do greške prilikom brisanja iz baze podataka
      */
     public final void delete(Long id) throws DatabaseException {
-        try (Connection conn = DbUtil.connectToDatabase()) {
+        try (Connection conn = DbUtils.connectToDatabase()) {
             delete(conn, id);
         } catch (SQLException | DatabaseConnectionException e) {
             throw new DatabaseException("Greška pri brisanju " + type.getSimpleName() + " s ID=" + id, e);
@@ -177,7 +177,7 @@ public abstract class DbDao<T extends Entity> {
      */
 
     public final Optional<T> findById(Long id) throws DatabaseException {
-        try (Connection conn = DbUtil.connectToDatabase()) {
+        try (Connection conn = DbUtils.connectToDatabase()) {
             return findById(conn, id);
         } catch (SQLException | DatabaseConnectionException e) {
             throw new DatabaseException("Greška pri dohvaćanju " + type.getSimpleName() + " s ID=" + id, e);
@@ -211,7 +211,7 @@ public abstract class DbDao<T extends Entity> {
      * @throws DatabaseAccessException ako dođe do greške pri pristupu bazi podataka
      */
     public final List<T> findAll() throws DatabaseException {
-        try (Connection conn = DbUtil.connectToDatabase()) {
+        try (Connection conn = DbUtils.connectToDatabase()) {
             return findAll(conn);
         } catch (SQLException | DatabaseConnectionException e) {
             throw new DatabaseException("Greška pri dohvaćanju svih objekata " + type.getSimpleName(), e);

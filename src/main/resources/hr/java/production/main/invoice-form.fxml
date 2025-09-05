@@ -7,13 +7,14 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="hr.java.production.controller.PaymentFormController">
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="hr.java.production.controller.InvoiceFormController">
     <children>
         <GridPane VBox.vgrow="ALWAYS">
             <columnConstraints>
@@ -25,6 +26,10 @@
             </columnConstraints>
             <rowConstraints>
                 <RowConstraints minHeight="10.0" percentHeight="14.3" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" percentHeight="14.3" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" percentHeight="14.3" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" percentHeight="14.3" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" percentHeight="14.3" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" percentHeight="14.3" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints maxHeight="117.0" minHeight="10.0" percentHeight="14.3" prefHeight="117.0" vgrow="SOMETIMES" />
                 <RowConstraints maxHeight="70.0" minHeight="10.0" percentHeight="14.3" prefHeight="34.0" vgrow="SOMETIMES" />
@@ -34,7 +39,7 @@
                 <RowConstraints minHeight="10.0" percentHeight="14.3" prefHeight="30.0" vgrow="SOMETIMES" />
             </rowConstraints>
             <children>
-                <Label fx:id="titleLabel" text="DODAVANJE NOVE FAKTURE" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                <Label fx:id="titleLabel" text="FAKTURA" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
                     <font>
                         <Font size="20.0" />
                     </font>
@@ -52,7 +57,10 @@
                         <Font size="14.0" />
                     </font>
                 </Label>
-                <Button fx:id="actionButton" mnemonicParsing="false" prefHeight="50.0" prefWidth="84.0" text="SPREMI" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="7" />
+                <Button fx:id="actionButton" mnemonicParsing="false" onAction="#onActionButton" prefHeight="40.0" prefWidth="124.0" text="SPREMI" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="11">
+               <GridPane.margin>
+                  <Insets bottom="10.0" />
+               </GridPane.margin></Button>
             <Label text="Datum dospjeća:" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
                <font>
                   <Font size="14.0" />
@@ -74,22 +82,63 @@
                   <Insets right="15.0" />
                </GridPane.margin>
             </Label>
-            <ComboBox fx:id="freelancerComboBox" prefWidth="150.0" GridPane.columnIndex="3" GridPane.rowIndex="1">
+            <ComboBox fx:id="freelancerComboBox" prefWidth="300.0" GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.rowIndex="1">
                <GridPane.margin>
                   <Insets left="5.0" />
                </GridPane.margin>
             </ComboBox>
-            <TableView fx:id="servicesTable" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="5" GridPane.rowIndex="3" GridPane.rowSpan="3">
+            <TableView fx:id="servicesTable" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="5" GridPane.rowIndex="6" GridPane.rowSpan="5">
               <columns>
                 <TableColumn fx:id="nameCol" prefWidth="514.0" text="Naziv usluge" />
                 <TableColumn fx:id="quantityCol" minWidth="3.0" prefWidth="98.0" text="Količina" />
-                  <TableColumn fx:id="unitFeeCol" minWidth="3.0" prefWidth="187.0" text="Cijena po jedinici" />
+                  <TableColumn fx:id="unitFeeCol" minWidth="3.0" prefWidth="187.0" text="Jedinična cijena" />
               </columns>
+               <GridPane.margin>
+                  <Insets bottom="10.0" />
+               </GridPane.margin>
             </TableView>
-            <Label text="USLUGE:" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="BOTTOM">
+            <Label text="UREĐIVANJE USLUGA:" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="3" GridPane.valignment="CENTER">
                <font>
                   <Font size="16.0" />
                </font>
+            </Label>
+            <Button fx:id="addRowButton" mnemonicParsing="false" onAction="#onAddRow" prefHeight="31.0" prefWidth="64.0" text="DODAJ" GridPane.columnIndex="3" GridPane.rowIndex="5" />
+            <Button fx:id="deleteRowButton" mnemonicParsing="false" onAction="#onDeleteRow" prefHeight="30.0" prefWidth="64.0" text="IZBRIŠI" GridPane.columnIndex="3" GridPane.halignment="RIGHT" GridPane.rowIndex="5" />
+            <TextField fx:id="serviceNameField" GridPane.columnIndex="1" GridPane.rowIndex="4">
+               <GridPane.margin>
+                  <Insets left="5.0" />
+               </GridPane.margin></TextField>
+            <TextField fx:id="unitFeeField" promptText="EUR" GridPane.columnIndex="3" GridPane.rowIndex="4">
+               <GridPane.margin>
+                  <Insets left="5.0" />
+               </GridPane.margin></TextField>
+            <TextField fx:id="quantityField" GridPane.columnIndex="1" GridPane.rowIndex="5">
+               <GridPane.margin>
+                  <Insets left="5.0" />
+               </GridPane.margin></TextField>
+            <Label text="Naziv usluge:" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
+               <font>
+                  <Font size="14.0" />
+               </font>
+               <GridPane.margin>
+                  <Insets right="15.0" />
+               </GridPane.margin>
+            </Label>
+            <Label text="Jedinična cijena:" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
+               <font>
+                  <Font size="14.0" />
+               </font>
+               <GridPane.margin>
+                  <Insets right="15.0" />
+               </GridPane.margin>
+            </Label>
+            <Label text="Količina:" GridPane.halignment="RIGHT" GridPane.rowIndex="5">
+               <font>
+                  <Font size="14.0" />
+               </font>
+               <GridPane.margin>
+                  <Insets right="15.0" />
+               </GridPane.margin>
             </Label>
             </children>
         </GridPane>

@@ -6,6 +6,10 @@ import hr.java.production.model.Payment;
 import hr.java.production.model.Role;
 import hr.java.production.model.User;
 import hr.java.production.service.PaymentService;
+import hr.java.production.ui.Alerts;
+import hr.java.production.ui.ScreenMode;
+import hr.java.production.ui.UiUtils;
+import hr.java.production.ui.Windows;
 import hr.java.production.util.SessionManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -13,10 +17,8 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.stage.Stage;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -40,6 +42,11 @@ public class PaymentViewController {
 
     @FXML private TextField filterField;
 
+    @FXML private Button addButton;
+    @FXML private Button editButton;
+    @FXML private Button viewButton;
+    @FXML private Button deleteButton;
+
     private final PaymentService paymentService = new PaymentService();
     private final ObservableList<Payment> currentList = FXCollections.observableArrayList();
     private FilteredList<Payment> filtered;
@@ -49,7 +56,6 @@ public class PaymentViewController {
 
     @FXML
     private void initialize() {
-        // columns
         idCol.setCellValueFactory(data ->
                 new SimpleStringProperty(String.valueOf(data.getValue().getId())));
 
@@ -73,34 +79,40 @@ public class PaymentViewController {
         transactionIdCol.setCellValueFactory(data ->
                 new SimpleStringProperty(data.getValue().getTransactionId()));
 
-        // numeric sort for ids
+        // sortiranje id kolone numerički
         idCol.setComparator((s1, s2) -> {
             try { return Integer.compare(Integer.parseInt(s1), Integer.parseInt(s2)); }
-            catch (NumberFormatException e) { return s1.compareTo(s2); }
+            catch (NumberFormatException _) { return s1.compareTo(s2); }
         });
         invoiceCol.setComparator(idCol.getComparator());
 
-        // load data
+        datePaidCol.setComparator(UiUtils.dateStringComparator(DATE_FORMAT));
+
+
+
         try {
-            List<Payment> payments = paymentService.findAll(); // returns fully hydrated payments
+            List<Payment> payments = paymentService.findAll();
             currentList.setAll(payments);
         } catch (DatabaseException e) {
+            Alerts.error("Greška u učitavanju podataka o uplatama.", e);
             currentList.clear();
         }
 
-        // filtering & sorting
+        // filtriranje i sortiranje
         filtered = new FilteredList<>(currentList, p -> true);
         SortedList<Payment> sorted = new SortedList<>(filtered);
         sorted.comparatorProperty().bind(paymentTable.comparatorProperty());
         paymentTable.setItems(sorted);
 
-        // role restriction for freelancers
+
         User u = SessionManager.getCurrentUser();
         if (u.role() == Role.FREELANCER) {
             userFreelancerId = u.linkedEntityId();
+            addButton.setDisable(true);
+            editButton.setDisable(true);
+            deleteButton.setDisable(true);
         }
 
-        // first pass
         applyFilters();
     }
 
@@ -111,15 +123,15 @@ public class PaymentViewController {
         LocalDate to   = paidTo.getValue();
 
         filtered.setPredicate(p -> {
-            // freelancer-only view
+            // ako je rola freelancer, pokaži mu samo njegove uplate
             if (userFreelancerId != null && !p.getInvoice().getFreelancer().getId().equals(userFreelancerId))
                 return false;
-            // date range on paidOn (inclusive)
+            // filter po datumu
             LocalDate paidDate = p.getPaidOn().toLocalDate();
             if (from != null && paidDate.isBefore(from)) return false;
             if (to   != null && paidDate.isAfter(to))   return false;
 
-            // text filter: payment id, invoice id, receiver full name, business, tx id, amount
+            // filtrira tekst iz search boxa
             if (q.isEmpty()) return true;
             return matchesText(p, q);
         });
@@ -132,7 +144,7 @@ public class PaymentViewController {
         // invoice id
         if (String.valueOf(p.getInvoice().getId()).contains(q)) return true;
 
-        // freelancer name + business (lowercase the whole strings)
+        // filter prema punom imena suradnika i firme
         Freelancer f = p.getInvoice().getFreelancer();
         String full = (f.getFirstName() + " " + f.getLastName()).toLowerCase(Locale.ROOT);
         if (full.contains(q)) return true;
@@ -143,8 +155,66 @@ public class PaymentViewController {
         // transaction id
         if (p.getTransactionId().toLowerCase(Locale.ROOT).contains(q)) return true;
 
-        // amount
+        // iznos
         return p.getAmount().toPlainString().contains(q);
+    }
+
+    private Stage getStage() {
+        return (Stage) paymentTable.getScene().getWindow();
+    }
+
+    private void reloadPayments() {
+        try {
+            currentList.setAll(paymentService.findAll()); // fully hydrated
+            applyFilters(); // keep current filters
+        } catch (DatabaseException e) {
+            currentList.clear();
+            Alerts.error("Dogodila se greška u dohvaćanju uplata", e);
+        }
+    }
+
+    @FXML
+    private void onAddPayment() {
+        Windows.openPaymentForm(getStage(), ScreenMode.CREATE, null);
+        reloadPayments();
+    }
+
+    @FXML
+    private void onEditPayment() {
+        Payment selected = paymentTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            Alerts.info("Odaberite uplatu za uređivanje.");
+            return;
+        }
+        Windows.openPaymentForm(getStage(), ScreenMode.EDIT, selected);
+        reloadPayments();
+    }
+
+    @FXML
+    private void onViewPayment() {
+        Payment selected = paymentTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            Alerts.info("Odaberite uplatu za pregled.");
+            return;
+        }
+        Windows.openPaymentForm(getStage(), ScreenMode.VIEW, selected);
+    }
+
+    @FXML
+    private void onDeletePayment() {
+        Payment selected = paymentTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            Alerts.info("Odaberite uplatu za brisanje.");
+            return;
+        }
+        if (!Alerts.confirm("Jeste li sigurni da želite obrisati odabranu uplatu?")) return;
+
+        try {
+            paymentService.delete(selected.getId());
+            currentList.remove(selected);
+        } catch (Exception e) {
+            Alerts.error("Brisanje nije uspjelo. Uplata možda ima povezane zapise.", e);
+        }
     }
 
     private static String normalize(String s) {

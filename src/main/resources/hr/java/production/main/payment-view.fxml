@@ -68,10 +68,10 @@
                </GridPane.margin>
             </DatePicker>
             <DatePicker fx:id="paidTo" onAction="#applyFilters" promptText="plaćeno do" GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.rowIndex="1" />
-            <Button mnemonicParsing="false" text="PREGLED" GridPane.columnIndex="5" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-            <Button mnemonicParsing="false" text="UREDI" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-            <Button mnemonicParsing="false" text="DODAJ" GridPane.columnIndex="7" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-            <Button mnemonicParsing="false" text="IZBRIŠI" textFill="RED" GridPane.columnIndex="7" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+            <Button fx:id="viewButton" mnemonicParsing="false" onAction="#onViewPayment" text="PREGLED" GridPane.columnIndex="5" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+            <Button fx:id="editButton" mnemonicParsing="false" onAction="#onEditPayment" text="UREDI" GridPane.columnIndex="6" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+            <Button fx:id="addButton" mnemonicParsing="false" onAction="#onAddPayment" text="DODAJ" GridPane.columnIndex="7" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+            <Button fx:id="deleteButton" mnemonicParsing="false" onAction="#onDeletePayment" text="IZBRIŠI" textFill="RED" GridPane.columnIndex="7" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
             </children>
         </GridPane>
     </children>

@@ -66,13 +66,20 @@ public final class Freelancer extends Worker {
             if (businessIdentificationNumber == null || businessIdentificationNumber.isBlank()) {
                 throw new ObjectValidationException("Identifikacijski broj ne smije biti prazan");
             }
-            if (bankAccountNumber == null || !bankAccountNumber.matches("^HR\\d{2}[0-9A-Z]{17}$")) {
+            if (bankAccountNumber == null) {
                 throw new ObjectValidationException("Broj bankovnog računa mora biti valjan IBAN");
             }
             return new Freelancer(this);
         }
     }
 
+    /**
+     * Stvara referencu na postojećeg freelancera pomoću određenog ID-a.
+     *
+     * @param id jedinstveni identifikator freelancera
+     * @return instanca klase Freelancer s postavljenim ID-om
+     * @throws ObjectValidationException ako je ID null
+     */
     public static Freelancer ref(Long id) {
         if (id == null) throw new ObjectValidationException("ID je obavezan za referencu freelancera.");
         return new Freelancer(id);

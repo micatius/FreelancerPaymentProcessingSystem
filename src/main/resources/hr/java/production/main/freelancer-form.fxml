@@ -1,97 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<!-- Minimal, controller-safe Freelancer form that matches FreelancerFormController fields -->
+
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="hr.java.production.controller.PaymentFormController">
+<AnchorPane prefHeight="520" prefWidth="760" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="hr.java.production.controller.FreelancerFormController">
+
     <children>
-        <GridPane VBox.vgrow="ALWAYS">
-            <columnConstraints>
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-            </columnConstraints>
+        <VBox spacing="12.0" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="12.0" AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="12.0">
+
+            <!-- Header -->
+            <Label style="-fx-font-size: 18; -fx-font-weight: bold;" text="Suradnik" />
+
+            <!-- Form grid -->
+            <GridPane hgap="12" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints halignment="RIGHT" minWidth="120" />
+                    <ColumnConstraints hgrow="ALWAYS" />
+                    <ColumnConstraints halignment="RIGHT" minWidth="120" />
+                    <ColumnConstraints hgrow="ALWAYS" />
+                </columnConstraints>
+
+                <!-- Row 0 -->
+                <Label text="Ime:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                <TextField fx:id="firstNameField" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+                <Label text="Prezime:" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+                <TextField fx:id="lastNameField" GridPane.columnIndex="3" GridPane.rowIndex="0" />
+
+                <!-- Row 1 -->
+                <Label text="E-mail:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                <TextField fx:id="emailField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+
+                <Label text="Telefon:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                <TextField fx:id="phoneNoField" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+
+                <!-- Row 2 -->
+                <Label text="Tvrtka:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                <TextField fx:id="companyNameField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+
+                <Label text="OIB tvrtke:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                <TextField fx:id="companyOibField" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+
+                <!-- Row 3 -->
+                <Label text="IBAN:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                <TextField fx:id="bankAccountNoField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+   
+                   <Label text="Aktivan:" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                <CheckBox fx:id="activeCheckBox" GridPane.columnIndex="3" GridPane.rowIndex="3" />
+
+                <!-- Row 4 -->
+                <Label text="Ulica:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                <TextField fx:id="streetField" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+
+                <Label text="Kućni broj:" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+                <TextField fx:id="houseNoField" GridPane.columnIndex="3" GridPane.rowIndex="4" />
+
+                <!-- Row 5 -->
+                <Label text="Grad:" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+                <TextField fx:id="townField" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+
+                <Label text="Poštanski broj:" GridPane.columnIndex="2" GridPane.rowIndex="5" />
+                <TextField fx:id="postalCodeField" GridPane.columnIndex="3" GridPane.rowIndex="5" />
             <rowConstraints>
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               <RowConstraints />
+               <RowConstraints />
+               <RowConstraints />
+               <RowConstraints />
+               <RowConstraints />
+               <RowConstraints />
             </rowConstraints>
-            <children>
-                <Label fx:id="titleLabel" text="DODAVANJE NOVE ISPLATE" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
-                    <font>
-                        <Font size="20.0" />
-                    </font>
-                </Label>
-                <TextField fx:id="amountField" GridPane.columnIndex="2" GridPane.rowIndex="2">
-                    <GridPane.margin>
-                        <Insets left="5.0" />
-                    </GridPane.margin>
-                </TextField>
-                <DatePicker fx:id="datePaidPicker" GridPane.columnIndex="2" GridPane.rowIndex="4">
-                    <GridPane.margin>
-                        <Insets left="5.0" />
-                    </GridPane.margin>
-                </DatePicker>
-                <TextField fx:id="txField" GridPane.columnIndex="2" GridPane.rowIndex="3">
-                    <GridPane.margin>
-                        <Insets left="5.0" />
-                    </GridPane.margin>
-                </TextField>
-                <Label text="Isplaćena faktura:" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
-                    <GridPane.margin>
-                        <Insets right="15.0" />
-                    </GridPane.margin>
-                    <font>
-                        <Font size="14.0" />
-                    </font>
-                </Label>
-                <Label text="Iznos (EUR):" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
-                    <GridPane.margin>
-                        <Insets right="15.0" />
-                    </GridPane.margin>
-                    <font>
-                        <Font size="14.0" />
-                    </font>
-                </Label>
-                <Label text="Broj transakcije:" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
-                    <GridPane.margin>
-                        <Insets right="15.0" />
-                    </GridPane.margin>
-                    <font>
-                        <Font size="14.0" />
-                    </font>
-                </Label>
-                <Label text="Datum isplate:" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
-                    <GridPane.margin>
-                        <Insets right="15.0" />
-                    </GridPane.margin>
-                    <font>
-                        <Font size="14.0" />
-                    </font>
-                </Label>
-                <ComboBox fx:id="invoiceComboBox" prefWidth="150.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
-                    <GridPane.margin>
-                        <Insets left="5.0" />
-                    </GridPane.margin>
-                </ComboBox>
-                <Button fx:id="actionButton" mnemonicParsing="false" prefHeight="50.0" prefWidth="84.0" text="SPREMI" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="6" />
-            </children>
-        </GridPane>
+            </GridPane>
+            
+            <HBox alignment="CENTER_RIGHT" spacing="10">
+                <Button fx:id="actionButton" onAction="#onActionButton" text="Spremi" />
+            </HBox>
+        </VBox>
     </children>
-</VBox>
+</AnchorPane>

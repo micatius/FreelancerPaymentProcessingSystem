@@ -3,7 +3,6 @@ package hr.java.production.service;
 import hr.java.production.exception.DatabaseException;
 import hr.java.production.log.BinaryChangeLogger;
 import hr.java.production.log.ChangeLogger;
-import hr.java.production.model.Address;
 import hr.java.production.model.Freelancer;
 import hr.java.production.model.Invoice;
 import hr.java.production.model.Payment;
@@ -57,18 +56,19 @@ public final class PaymentService extends TransactionService {
     /** Creates a payment; enforces 1↔1 by checking if the invoice already has a payment. Returns new payment ID. */
     public Long save(Payment payment) throws DatabaseException {
         return inTransaction(conn -> {
-            Long invoiceId = Objects.requireNonNull(payment.getInvoice(), "Payment.invoice ref must not be null")
-                    .getId();
-            Objects.requireNonNull(invoiceId, "Payment.invoice.id must not be null");
+            if (payment == null) throw new DatabaseException("Uplata ne smije biti null.");
+            if (payment.getInvoice() == null || payment.getInvoice().getId() == null) {
+                throw new DatabaseException("Uplata mora imati referencu na račun (id).");
+            }
+            Long invoiceId = payment.getInvoice().getId();
 
-            // ensure invoice exists
-            invoiceDao.findById(conn, invoiceId)
-                    .orElseThrow(() -> new DatabaseException(NO_INVOICE_ID + invoiceId));
-
-            // enforce 1↔1 (also add a UNIQUE constraint at DB level)
+            if (invoiceDao.findById(conn, invoiceId).isEmpty()) {
+                throw new DatabaseException(NO_INVOICE_ID + invoiceId);
+            }
             if (paymentDao.findByInvoiceId(conn, invoiceId).isPresent()) {
                 throw new DatabaseException(DUP_PAYMENT + invoiceId);
             }
+
 
             paymentDao.save(conn, payment);
             changeLogger.logCreate(payment);
@@ -79,22 +79,27 @@ public final class PaymentService extends TransactionService {
     /** Updates a payment. If invoice ref changes, still enforces 1↔1 on the new invoice. */
     public void update(Payment updated) throws DatabaseException {
         inTransaction(conn -> {
-            Long id = Objects.requireNonNull(updated.getId(), "ID uplate ne smije biti null");
+            if (updated == null) throw new DatabaseException("Uplata ne smije biti null.");
+            Long id = updated.getId();
+            if (id == null) throw new DatabaseException("ID uplate ne smije biti null.");
+
             Payment old = paymentDao.findById(conn, id)
                     .orElseThrow(() -> new DatabaseException(NO_PAYMENT_ID + id));
 
-            Long newInvoiceId = Objects.requireNonNull(updated.getInvoice(), "Payment.invoice ref must not be null")
-                    .getId();
-            Objects.requireNonNull(newInvoiceId, "Payment.invoice.id must not be null");
+            if (updated.getInvoice() == null || updated.getInvoice().getId() == null) {
+                throw new DatabaseException("Uplata mora imati referencu na račun (id).");
+            }
+            Long newInvoiceId = updated.getInvoice().getId();
 
-            // if invoice ref changed, ensure new invoice exists and has no payment yet
-            if (!Objects.equals(old.getInvoice().getId(), newInvoiceId)) {
-                invoiceDao.findById(conn, newInvoiceId)
-                        .orElseThrow(() -> new DatabaseException(NO_INVOICE_ID + newInvoiceId));
+            if (!old.getInvoice().getId().equals(newInvoiceId)) {
+                if (invoiceDao.findById(conn, newInvoiceId).isEmpty()) {
+                    throw new DatabaseException(NO_INVOICE_ID + newInvoiceId);
+                }
                 if (paymentDao.findByInvoiceId(conn, newInvoiceId).isPresent()) {
                     throw new DatabaseException(DUP_PAYMENT + newInvoiceId);
                 }
             }
+
 
             paymentDao.update(conn, updated);
             changeLogger.logUpdate(old, updated);
@@ -120,7 +125,7 @@ public final class PaymentService extends TransactionService {
         return inTransaction(conn -> {
             Optional<Payment> p = paymentDao.findById(conn, id);
             if (p.isEmpty()) return Optional.empty();
-            return Optional.of(hydrate(conn, p.get()));
+            return Optional.of(buildDetailed(conn, p.get()));
         }, "Greška pri čitanju uplate po ID-u");
     }
 
@@ -129,7 +134,7 @@ public final class PaymentService extends TransactionService {
         return inTransaction(conn -> {
             Optional<Payment> p = paymentDao.findByInvoiceId(conn, invoiceId);
             if (p.isEmpty()) return Optional.empty();
-            return Optional.of(hydrate(conn, p.get()));
+            return Optional.of(buildDetailed(conn, p.get()));
         }, "Greška pri čitanju uplate po ID-u računa");
     }
 
@@ -139,18 +144,15 @@ public final class PaymentService extends TransactionService {
             List<Payment> payments = paymentDao.findAll(conn);
             if (payments.isEmpty()) return List.of();
             List<Payment> out = new ArrayList<>(payments.size());
-            for (Payment p : payments) out.add(hydrate(conn, p));
+            for (Payment p : payments) out.add(buildDetailed(conn, p));
             return out;
         }, "Greška pri dohvaćanju svih uplata");
     }
 
     /* ----------------------------- tiny local helper ----------------------------- */
 
-    /**
-     * Hydrates a Payment into PaymentView on the same connection:
-     * Payment + Invoice (+Freelancer + Address).
-     */
-    private Payment hydrate(Connection conn, Payment payment) throws DatabaseException {
+
+    private Payment buildDetailed(Connection conn, Payment payment) throws DatabaseException {
         Long invoiceId = (payment.getInvoice() != null) ? payment.getInvoice().getId() : null;
         if (invoiceId == null) return payment;
 
@@ -160,13 +162,12 @@ public final class PaymentService extends TransactionService {
             Long freelancerId = invoice.getFreelancer().getId();
             Freelancer freelancer = freelancerDao.findById(conn, freelancerId).orElse(null);
             if (freelancer != null && freelancer.getAddress() != null && freelancer.getAddress().getId() != null) {
-                Address address = addressDao.findById(conn, freelancer.getAddress().getId()).orElse(null);
-                if (address != null) freelancer.setAddress(address);
+                addressDao.findById(conn, freelancer.getAddress().getId()).ifPresent(freelancer::setAddress);
             }
             if (freelancer != null) invoice.setFreelancer(freelancer);
         }
 
-        payment.setInvoice(invoice); // replace ref with hydrated invoice
+        payment.setInvoice(invoice);
         return payment;
     }
 

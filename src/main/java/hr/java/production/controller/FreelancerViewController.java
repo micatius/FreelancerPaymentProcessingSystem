@@ -2,20 +2,20 @@ package hr.java.production.controller;
 
 import hr.java.production.exception.DatabaseException;
 import hr.java.production.model.Freelancer;
+import hr.java.production.model.Role;
+import hr.java.production.model.User;
 import hr.java.production.service.FreelancerService;
 import hr.java.production.ui.Alerts;
 import hr.java.production.ui.ScreenMode;
 import hr.java.production.ui.Windows;
+import hr.java.production.util.SessionManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 import java.util.List;
@@ -38,6 +38,13 @@ public class FreelancerViewController {
     private TableColumn<Freelancer, String> phoneNoCol;
     @FXML
     private TableColumn<Freelancer, String> activeCol;
+
+    @FXML
+    private Button addButton;
+    @FXML
+    private Button deleteButton;
+    @FXML
+    private Button editButton;
 
     @FXML
     private CheckBox activeCheckBox;
@@ -93,6 +100,12 @@ public class FreelancerViewController {
         sorted.comparatorProperty().bind(freelancerTable.comparatorProperty());
         freelancerTable.setItems(sorted);
 
+        User current = SessionManager.getCurrentUser();
+        if (current.role() == Role.FINANCE) {
+            addButton.setDisable(true);
+            editButton.setDisable(true);
+            deleteButton.setDisable(true);
+        }
 
         applyFilters();
     }
@@ -142,7 +155,7 @@ public class FreelancerViewController {
         }
     }
 
-    private Stage ownerStage() {
+    private Stage getStage() {
         return (Stage) freelancerTable.getScene().getWindow();
     }
 
@@ -152,7 +165,7 @@ public class FreelancerViewController {
 
     @FXML
     private void onAddFreelancer() {
-        Windows.openFreelancerForm(ownerStage(), ScreenMode.CREATE, null);
+        Windows.openFreelancerForm(getStage(), ScreenMode.CREATE, null);
         reloadFreelancers();
     }
 
@@ -163,7 +176,7 @@ public class FreelancerViewController {
             Alerts.info("Odaberite suradnika za uređivanje.");
             return;
         }
-        Windows.openFreelancerForm(ownerStage(), ScreenMode.EDIT, selected);
+        Windows.openFreelancerForm(getStage(), ScreenMode.EDIT, selected);
         reloadFreelancers();
     }
 
@@ -174,7 +187,7 @@ public class FreelancerViewController {
             Alerts.info("Odaberite suradnika za pregled.");
             return;
         }
-        Windows.openFreelancerForm(ownerStage(), ScreenMode.VIEW, selected);
+        Windows.openFreelancerForm(getStage(), ScreenMode.VIEW, selected);
     }
 
     @FXML

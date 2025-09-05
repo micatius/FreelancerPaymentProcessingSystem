@@ -4,8 +4,16 @@
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.Label?>
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="hr.java.production.controller.MenuController">
     <children>
+        <Label fx:id="overdueBanner"
+               text=""
+               style="-fx-background-color: orange; -fx-text-fill: black; -fx-font-weight: bold; -fx-padding: 5;"
+               visible="false"
+               managed="false"
+               maxWidth="Infinity"
+        />
         <TabPane fx:id="mainTabs" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
             <tabs>
                 <Tab fx:id="tabInvoices" text="Fakture">

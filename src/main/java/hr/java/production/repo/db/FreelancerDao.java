@@ -4,7 +4,7 @@ import hr.java.production.exception.DatabaseConnectionException;
 import hr.java.production.exception.DatabaseException;
 import hr.java.production.model.Address;
 import hr.java.production.model.Freelancer;
-import hr.java.production.util.DbUtil;
+import hr.java.production.util.DbUtils;
 
 import java.sql.*;
 import java.util.Collections;
@@ -97,7 +97,7 @@ public final class FreelancerDao extends DbDao<Freelancer> {
      */
     public Map<Long, Freelancer> findByIds(Set<Long> ids) throws DatabaseException {
         if (ids == null || ids.isEmpty()) return Collections.emptyMap();
-        try (Connection c = DbUtil.connectToDatabase()) {
+        try (Connection c = DbUtils.connectToDatabase()) {
             return findByIds(c, ids);
         } catch (DatabaseConnectionException | SQLException e) {
             throw new DatabaseException("Greška u dohvaćanju freelancera po ID-evima", e);

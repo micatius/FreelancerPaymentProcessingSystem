@@ -14,7 +14,6 @@ import hr.java.production.repo.db.InvoiceDao;
 import hr.java.production.repo.db.PaymentDao;
 import hr.java.production.repo.db.ServiceDao;
 
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -53,6 +52,12 @@ public final class InvoiceService extends TransactionService {
     /** Kreira fakturu (+stavke) i vraća potpuno hidrirani pogled. */
     public Long save(Invoice invoice) throws DatabaseException {
         return inTransaction(conn -> {
+
+            if (invoice == null) throw new DatabaseException("Račun ne smije biti null.");
+            if (invoice.getFreelancer() == null || invoice.getFreelancer().getId() == null) {
+                throw new DatabaseException("Račun mora imati postojećeg freelancera (ref id).");
+            }
+
             invoiceDao.save(conn, invoice);
             Long invId = invoice.getId();
 
@@ -73,13 +78,23 @@ public final class InvoiceService extends TransactionService {
     /** Ažurira fakturu, zamjenjuje stavke i vraća potpuno hidrirani pogled. */
     public void update(Invoice updated) throws DatabaseException {
         inTransaction(conn -> {
-            Long invId = Objects.requireNonNull(updated.getId(), "ID ne smije biti null");
+            if (updated == null) throw new DatabaseException("Račun ne smije biti null.");
+            Long invId = updated.getId();
+            if (invId == null) throw new DatabaseException("ID računa ne smije biti null.");
+
             Invoice old = invoiceDao.findById(conn, invId)
                     .orElseThrow(() -> new DatabaseException(NO_INVOICE_ID + invId));
 
+            if (updated.getFreelancer() == null || updated.getFreelancer().getId() == null) {
+                throw new DatabaseException("Račun mora imati postojećeg freelancera (ref id).");
+            }
+            if (freelancerDao.findById(conn, updated.getFreelancer().getId()).isEmpty()) {
+                throw new DatabaseException("Freelancer ne postoji: id=" + updated.getFreelancer().getId());
+            }
+
             invoiceDao.update(conn, updated);
 
-            // replace services
+
             serviceDao.deleteByInvoiceId(conn, invId);
             List<Service> services = updated.getServices();
             if (services != null) {
@@ -134,7 +149,6 @@ public final class InvoiceService extends TransactionService {
     /** Single-invoice toView: loads Freelancer (+Address), Services, Payment. */
     private InvoiceView toView(Connection conn, Invoice invoice) throws DatabaseException {
         try {
-            // freelancer (+address)
             if (invoice.getFreelancer() != null && invoice.getFreelancer().getId() != null) {
                 Long fId = invoice.getFreelancer().getId();
                 Freelancer f = freelancerDao.findById(conn, fId).orElse(null);
@@ -157,9 +171,6 @@ public final class InvoiceService extends TransactionService {
         }
     }
 
-    /**
-     * Batch toView: performs O(1) queries per table (no N+1) and stitches views.
-     */
     private List<InvoiceView> toView(Connection conn, List<Invoice> invoices) throws DatabaseException {
         try {
             Set<Long> invoiceIds = invoices.stream().map(Invoice::getId).collect(Collectors.toSet());

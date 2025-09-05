@@ -2,7 +2,7 @@ package hr.java.production.service;
 
 import hr.java.production.exception.DatabaseConnectionException;
 import hr.java.production.exception.DatabaseException;
-import hr.java.production.util.DbUtil;
+import hr.java.production.util.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +30,7 @@ public abstract class TransactionService {
         boolean prevAuto = true;
 
         try {
-            conn = DbUtil.connectToDatabase();
+            conn = DbUtils.connectToDatabase();
 
             prevAuto = getAutoCommitOrTrue(conn);
             setAutoCommitQuietly(conn, false);

@@ -13,9 +13,9 @@ import java.util.Properties;
  * Klasa za povezivanje na bazu podataka.
  * Sadrži statičnu metodu za uspostavljanje veze s bazom koristeći konfiguracijske parametre.
  */
-public final class DbUtil {
+public final class DbUtils {
     private static final String DATABASE_FILE = "/db/db.properties";
-    private DbUtil() {}
+    private DbUtils() {}
 
     /**
      * Spaja se na bazu podataka koristeći konfiguracijske parametre iz
@@ -27,7 +27,7 @@ public final class DbUtil {
     public static Connection connectToDatabase() throws DatabaseConnectionException {
         Properties props = new Properties();
 
-        try (InputStream in = DbUtil.class
+        try (InputStream in = DbUtils.class
                 .getResourceAsStream(DATABASE_FILE)) {
 
             if (in == null) {

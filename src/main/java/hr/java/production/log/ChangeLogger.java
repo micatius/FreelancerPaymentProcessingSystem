@@ -1,10 +1,8 @@
 package hr.java.production.log;
 
-import hr.java.production.log.BinaryChangeLogger;
 import hr.java.production.model.Entity;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -46,27 +44,4 @@ public sealed interface ChangeLogger permits BinaryChangeLogger {
      * @return lista zapisa tog tipa
      */
     <T extends Entity & Serializable> List<ChangeLog<T>> readAll(Class<T> type);
-
-    /**
-     * Vraća zapise određenog tipa u zadanom intervalu.
-     *
-     * @param type tip entiteta
-     * @param from početno vrijeme (može biti null)
-     * @param to   završno vrijeme (može biti null)
-     * @param <T>  tip entiteta
-     * @return lista zapisa u intervalu
-     */
-    <T extends Entity & Serializable> List<ChangeLog<T>> readBetween(Class<T> type,
-                                                                     LocalDateTime from,
-                                                                     LocalDateTime to);
-
-    /**
-     * Vraća posljednjih {@code lastN} zapisa za tip.
-     *
-     * @param type  tip entiteta
-     * @param lastN broj zapisa
-     * @param <T>   tip entiteta
-     * @return lista zadnjih zapisa
-     */
-    <T extends Entity & Serializable> List<ChangeLog<T>> tail(Class<T> type, int lastN);
 }

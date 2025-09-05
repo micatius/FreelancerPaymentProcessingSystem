@@ -2,14 +2,11 @@ package hr.java.production.log;
 
 import hr.java.production.exception.BinaryFileReadException;
 import hr.java.production.exception.BinaryFileWriteException;
-import hr.java.production.log.ChangeLog;
 import hr.java.production.model.Entity;
 import hr.java.production.util.SessionManager;
 
 import java.io.*;
-import java.nio.channels.FileChannel;
 import java.nio.file.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +38,16 @@ public final class BinaryChangeLogger implements ChangeLogger {
         writeBinary(entry);
     }
 
+    public List<ChangeLog<Entity>> readAll() {
+        List<ChangeLog<Entity>> out = new ArrayList<>();
+        for (ChangeLog<? extends Entity> raw : readAllRaw()) {
+            @SuppressWarnings("unchecked")
+            ChangeLog<Entity> casted = (ChangeLog<Entity>) raw;
+            out.add(casted);
+        }
+        return out;
+    }
+
     @Override
     public <T extends Entity & Serializable> List<ChangeLog<T>> readAll(Class<T> type) {
         List<ChangeLog<? extends Entity>> all = readAllRaw();
@@ -55,30 +62,6 @@ public final class BinaryChangeLogger implements ChangeLogger {
         return out;
     }
 
-    @Override
-    public <T extends Entity & Serializable> List<ChangeLog<T>> readBetween(Class<T> type,
-                                                                            LocalDateTime from,
-                                                                            LocalDateTime to) {
-        List<ChangeLog<T>> all = readAll(type);
-        if (from == null && to == null) return all;
-
-        List<ChangeLog<T>> out = new ArrayList<>();
-        for (ChangeLog<T> log : all) {
-            LocalDateTime ts = log.timestamp();
-            if ((from == null || !ts.isBefore(from)) &&
-                    (to == null || !ts.isAfter(to))) {
-                out.add(log);
-            }
-        }
-        return out;
-    }
-
-    @Override
-    public <T extends Entity & Serializable> List<ChangeLog<T>> tail(Class<T> type, int lastN) {
-        List<ChangeLog<T>> all = readAll(type);
-        int size = all.size();
-        return size <= lastN ? all : all.subList(size - lastN, size);
-    }
 
     private static void writeBinary(Object entry) {
         synchronized (BinaryChangeLogger.class) {
@@ -105,19 +88,18 @@ public final class BinaryChangeLogger implements ChangeLogger {
             if (!Files.exists(LOG_FILE)) return List.of();
 
             List<ChangeLog<? extends Entity>> logs = new ArrayList<>();
-            try (FileInputStream fis = new FileInputStream(LOG_FILE.toFile());
-                 FileChannel ch = fis.getChannel();
+            try (InputStream fis = Files.newInputStream(LOG_FILE);
                  BufferedInputStream bis = new BufferedInputStream(fis);
                  ObjectInputStream ois = new ObjectInputStream(bis)) {
 
-                long end = ch.size();
-                while (ch.position() < end) {
+                while (true) {
                     Object obj = ois.readObject();
                     if (obj instanceof ChangeLog<?> tmp) {
                         logs.add(tmp);
                     }
                 }
-            } catch (EOFException eof) {
+            } catch (EOFException _) {
+                // kraj filea
             } catch (IOException | ClassNotFoundException e) {
                 throw new BinaryFileReadException("Greška pri čitanju ChangeLog zapisa", e);
             }

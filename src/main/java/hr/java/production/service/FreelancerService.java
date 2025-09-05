@@ -39,6 +39,16 @@ public final class FreelancerService extends TransactionService {
 
     public Long save(Freelancer freelancer) throws DatabaseException {
         return inTransaction(conn -> {
+            if (freelancer == null) {
+                throw new DatabaseException("Suradnik ne smije biti null.");
+            }
+            Address addr = freelancer.getAddress();
+            if (addr == null) {
+                throw new DatabaseException("Adresa suradnika ne smije biti null.");
+            }
+            if (addr.getId() == null) {
+                addressDao.save(conn, addr);
+            }
             freelancerDao.save(conn, freelancer);
             changeLogger.logCreate(freelancer);
             return freelancer.getId();
@@ -47,9 +57,27 @@ public final class FreelancerService extends TransactionService {
 
     public void update(Freelancer updated) throws DatabaseException {
         inTransaction(conn -> {
-            Long id = Objects.requireNonNull(updated.getId(), "ID ne smije biti null");
+            if (updated == null) {
+                throw new DatabaseException("Suradnik ne smije biti null.");
+            }
+            Long id = updated.getId();
+            if (id == null) {
+                throw new DatabaseException("ID suradnika ne smije biti null.");
+            }
+
             Freelancer old = freelancerDao.findById(conn, id)
                     .orElseThrow(() -> new DatabaseException(NO_FREELANCER_ID + id));
+
+            Address addr = updated.getAddress();
+            if (addr == null) {
+                throw new DatabaseException("Freelancer.address must not be null.");
+            }
+
+            if (addr.getId() == null) {
+                addressDao.save(conn, addr);
+            } else {
+                addressDao.update(conn, addr);
+            }
 
             freelancerDao.update(conn, updated);
             changeLogger.logUpdate(old, updated);

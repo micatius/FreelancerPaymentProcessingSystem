@@ -14,7 +14,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.Optional;
 
 /**
  * Klasa Windows omogućuje otvaranje i upravljanje različitim uređivačkim prozorima
@@ -25,8 +24,8 @@ public final class Windows {
     private Windows() {}
 
     public static void openFreelancerForm(Stage owner,
-                                                            ScreenMode mode,
-                                                            Freelancer freelancer) {
+                                          ScreenMode mode,
+                                          Freelancer freelancer) {
         try {
             FXMLLoader loader = new FXMLLoader(PaymentApplication.class.getResource("freelancer-form.fxml"));
             Parent root = loader.load();
@@ -48,54 +47,52 @@ public final class Windows {
         }
     }
 
-//    public static void openInvoiceForm(Stage owner,
-//                                                      ScreenMode mode,
-//                                                      Invoice invoice) {
-//        try {
-//            FXMLLoader loader = new FXMLLoader(
-//                    PaymentApplication.class.getResource("invoice-form.fxml"));
-//            Parent root = loader.load();
-//            InvoiceFormController c = loader.getController();
-//            c.setup(mode, invoice);
-//
-//            Stage stage = new Stage();
-//            stage.setScene(new Scene(root));
-//            stage.setTitle(c.getWindowTitle());
-//            if (owner != null) {
-//                stage.initOwner(owner);
-//                stage.initModality(Modality.WINDOW_MODAL);
-//            }
-//            stage.setResizable(false);
-//            stage.showAndWait();
-//
-//        } catch (IOException e) {
-//            Alerts.error("Greška u otvaranju forme za fakture.", e);
-//        }
-//    }
+    public static void openInvoiceForm(Stage owner,
+                                       ScreenMode mode,
+                                       Invoice invoice) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    PaymentApplication.class.getResource("invoice-form.fxml"));
+            Parent root = loader.load();
+            InvoiceFormController c = loader.getController();
+            c.setup(mode, invoice);
 
-//    public static void openPaymentForm(Stage owner,
-//                                                      PaymentFormController.ScreenMode mode,
-//                                                      Payment model) {
-//        try {
-//            FXMLLoader loader = new FXMLLoader(
-//                    PaymentApplication.class.getResource("freelancer-editor.fxml"));
-//            Parent root = loader.load();
-//            PaymentFormController c = loader.getController();
-//            c.setup(mode, model);
-//
-//            Stage stage = new Stage();
-//            stage.setScene(new Scene(root));
-//            stage.setTitle(c.getWindowTitle());
-//            if (owner != null) {
-//                stage.initOwner(owner);
-//                stage.initModality(Modality.WINDOW_MODAL);
-//            }
-//            stage.setResizable(false);
-//            stage.showAndWait();
-//
-//            return c.isSaved() ? Optional.ofNullable(c.getModel()) : Optional.empty();
-//        } catch (IOException e) {
-//            Alerts.error("Greška u otvaranju forme za isplate.", e);
-//        }
-//    }
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.setTitle(c.getWindowTitle());
+            if (owner != null) {
+                stage.initOwner(owner);
+                stage.initModality(Modality.WINDOW_MODAL);
+            }
+            stage.setResizable(false);
+            stage.showAndWait();
+
+        } catch (IOException e) {
+            Alerts.error("Greška u otvaranju forme za fakture.", e);
+        }
+    }
+
+    public static void openPaymentForm(Stage owner,
+                                       ScreenMode mode,
+                                       Payment model) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    PaymentApplication.class.getResource("payment-form.fxml"));
+            Parent root = loader.load();
+            PaymentFormController c = loader.getController();
+            c.setup(mode, model);
+
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.setTitle(c.getWindowTitle());
+            if (owner != null) {
+                stage.initOwner(owner);
+                stage.initModality(Modality.WINDOW_MODAL);
+            }
+            stage.setResizable(false);
+            stage.showAndWait();
+        } catch (IOException e) {
+            Alerts.error("Greška u otvaranju forme za isplate.", e);
+        }
+    }
 }

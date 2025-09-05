@@ -28,26 +28,23 @@ public final class FreelancerFormController {
 
     private final FreelancerService freelancerService = new FreelancerService();
 
-    private ScreenMode mode = ScreenMode.CREATE; // set in setup(...)
-    private Freelancer freelancer;                    // null in CREATE
+    private ScreenMode mode = ScreenMode.CREATE;
+    private Freelancer modelFreelancer;
 
     @FXML
     private void initialize() {
-        // default for CREATE; setup(...) may override
         activeCheckBox.setSelected(true);
     }
 
     public void setup(ScreenMode mode, Freelancer model) {
         this.mode  = mode;
-        this.freelancer = model;
+        this.modelFreelancer = model;
 
         if (mode != ScreenMode.CREATE && model != null) {
             populateFields(model);
         }
         applyMode(mode);
     }
-
-    // ---------- UI population & mode ----------
 
     private void populateFields(Freelancer f) {
         firstNameField.setText(f.getFirstName());
@@ -101,7 +98,7 @@ public final class FreelancerFormController {
 
     private static void setEditable(TextField tf, boolean editable) {
         tf.setEditable(editable);
-        tf.setDisable(!editable); // keeps tab behavior consistent in VIEW
+        tf.setDisable(!editable);
     }
 
     @FXML
@@ -113,12 +110,12 @@ public final class FreelancerFormController {
                 Freelancer created = buildFreelancer(null);
                 Long id = freelancerService.save(created);
                 created.setId(id);
-                freelancer = created;
+                modelFreelancer = created;
                 Alerts.info("Suradnik je uspješno kreiran.");
             } else { // EDIT
-                Freelancer updated = buildFreelancer(freelancer.getId());
+                Freelancer updated = buildFreelancer(modelFreelancer.getId());
                 freelancerService.update(updated);
-                freelancer = updated;
+                modelFreelancer = updated;
                 Alerts.info("Promjene su uspješno spremljene.");
             }
             close();
@@ -130,12 +127,18 @@ public final class FreelancerFormController {
     }
 
     private Freelancer buildFreelancer(Long id) {
-        Address address = new Address.Builder()
+        Address.Builder addressBuilder = new Address.Builder()
                 .street(streetField.getText())
                 .houseNumber(houseNoField.getText())
                 .city(townField.getText())
-                .postalCode(postalCodeField.getText())
-                .build();
+                .postalCode(postalCodeField.getText());
+
+        if (id != null && modelFreelancer != null && modelFreelancer.getAddress() != null) {
+            addressBuilder.id(modelFreelancer.getAddress().getId());
+        }
+
+        Address address = addressBuilder.build();
+
 
         Freelancer.Builder fb = new Freelancer.Builder()
                 .firstName(firstNameField.getText())
@@ -156,7 +159,7 @@ public final class FreelancerFormController {
         ((Stage) actionButton.getScene().getWindow()).close();
     }
 
-    public Freelancer getFreelancer(){ return freelancer; }
+    public Freelancer getModelFreelancer(){ return modelFreelancer; }
     public String getWindowTitle() {
         return switch (mode) {
             case VIEW   -> "Pregled suradnika";

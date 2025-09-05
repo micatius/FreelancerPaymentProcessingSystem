@@ -3,11 +3,6 @@
 •	Features: Payment tracking, invoicing, reporting.
     - reporting --> javafx screen with javafx charts (possibly PDF export later)
     - payment tracking --> javaFX screen, we can manually enter payments for an invoice after selecting a due invoice.
-        Opens the invoice, Clicks "Record Payment," Manually fills in: Payment amount (maybe pre-filled)
-                                                                       Date paid
-                                                                       (Optional) method, transaction ID, notes
-    - invoicing --> each invoice has a freelancer and a due date, possibly list of services (possibly export to PDF later)
+    - invoicing --> each invoice has a freelancer and a due date, possibly list of services
 •	Database: Freelancer records, payment history, invoice logs.
 •	Threads: Notify finance teams of pending payments, monitor payment status.
-
-DODAJ VALIDACIJE U ZASEBNE METODE kako ih možete reusati za GUI

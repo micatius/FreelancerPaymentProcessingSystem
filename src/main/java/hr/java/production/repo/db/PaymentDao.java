@@ -4,7 +4,7 @@ import hr.java.production.exception.DatabaseConnectionException;
 import hr.java.production.exception.DatabaseException;
 import hr.java.production.model.Invoice;
 import hr.java.production.model.Payment;
-import hr.java.production.util.DbUtil;
+import hr.java.production.util.DbUtils;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -81,7 +81,7 @@ public final class PaymentDao extends DbDao<Payment> {
     }
 
     public Optional<Payment> findByInvoiceId(long invoiceId) throws DatabaseException {
-        try (Connection conn = DbUtil.connectToDatabase()) {
+        try (Connection conn = DbUtils.connectToDatabase()) {
             return findByInvoiceId(conn, invoiceId);
         } catch (SQLException | DatabaseConnectionException e) {
             throw new DatabaseException("Greška pri dohvaćanju uplate za račun ID=" + invoiceId, e);
@@ -89,7 +89,7 @@ public final class PaymentDao extends DbDao<Payment> {
     }
 
     public void deleteByInvoiceId(long invoiceId) throws DatabaseException {
-        try (Connection conn = DbUtil.connectToDatabase()) {
+        try (Connection conn = DbUtils.connectToDatabase()) {
             deleteByInvoiceId(conn, invoiceId);
         } catch (SQLException | DatabaseConnectionException e) {
             throw new DatabaseException("Greška pri brisanju uplata za račun ID=" + invoiceId, e);
@@ -142,7 +142,7 @@ public final class PaymentDao extends DbDao<Payment> {
 
     public Map<Long, Payment> findByInvoiceIds(Set<Long> invoiceIds) throws DatabaseException {
         if (invoiceIds == null || invoiceIds.isEmpty()) return Collections.emptyMap();
-        try (Connection c = DbUtil.connectToDatabase()) {
+        try (Connection c = DbUtils.connectToDatabase()) {
             return findByInvoiceIds(c, invoiceIds);
         }
         catch (SQLException | DatabaseConnectionException e) {

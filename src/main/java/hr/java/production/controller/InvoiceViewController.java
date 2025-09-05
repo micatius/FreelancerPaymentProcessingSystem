@@ -7,6 +7,10 @@ import hr.java.production.model.Role;
 import hr.java.production.model.User;
 import hr.java.production.service.InvoiceService;
 import hr.java.production.service.InvoiceService.InvoiceView;
+import hr.java.production.ui.Alerts;
+import hr.java.production.ui.ScreenMode;
+import hr.java.production.ui.UiUtils;
+import hr.java.production.ui.Windows;
 import hr.java.production.util.SessionManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -15,6 +19,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.stage.Stage;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -38,6 +43,11 @@ public final class InvoiceViewController {
     @FXML private CheckBox paidCheckBox;
     @FXML private TextField filterField;
 
+    @FXML private Button addButton;
+    @FXML private Button editButton;
+    @FXML private Button viewButton;
+    @FXML private Button deleteButton;
+
     private final InvoiceService invoiceService = new InvoiceService();
     private final ObservableList<InvoiceView> currentList = FXCollections.observableArrayList();
     private FilteredList<InvoiceView> filtered;
@@ -49,7 +59,7 @@ public final class InvoiceViewController {
 
     @FXML
     private void initialize() {
-        // --- columns ---
+        // postavljanje kolona u tablici
         invoiceIdCol.setCellValueFactory(data ->
                 new SimpleStringProperty(String.valueOf(data.getValue().invoice().getId())));
 
@@ -65,26 +75,31 @@ public final class InvoiceViewController {
         dateReceivedCol.setCellValueFactory(data ->
                 new SimpleStringProperty(DATE_FORMAT.format(data.getValue().invoice().getInvoiceDate())));
 
+        dateReceivedCol.setComparator(UiUtils.dateStringComparator(DATE_FORMAT));
+
         dueDateCol.setCellValueFactory(data ->
                 new SimpleStringProperty(DATE_FORMAT.format(data.getValue().invoice().getDueDate())));
+
+        dueDateCol.setComparator(dateReceivedCol.getComparator());
 
         paidCol.setCellValueFactory(data ->
                 new SimpleStringProperty(data.getValue().isPaid() ? "Da" : "Ne"));
 
         invoiceIdCol.setComparator((s1, s2) -> {
             try { return Integer.compare(Integer.parseInt(s1), Integer.parseInt(s2)); }
-            catch (NumberFormatException e) { return s1.compareTo(s2); }
+            catch (NumberFormatException _) { return s1.compareTo(s2); }
         });
 
-        // --- load data ---
+        // učitavanje podataka za tabloicu
         try {
             List<InvoiceView> views = invoiceService.findAll();
             currentList.setAll(views);
         } catch (DatabaseException e) {
             currentList.clear();
+            Alerts.error("Greška u dohvaćanju faktura za tablicu faktura.", e);
         }
 
-        // --- filtering & sorting ---
+        // filtira
         filtered = new FilteredList<>(currentList, iv -> true);
         SortedList<InvoiceView> sorted = new SortedList<>(filtered);
         sorted.comparatorProperty().bind(invoiceTable.comparatorProperty());
@@ -95,7 +110,6 @@ public final class InvoiceViewController {
             userFreelancerId = u.linkedEntityId();
         }
 
-        // initial filter pass
         applyFilters();
     }
 
@@ -157,5 +171,67 @@ public final class InvoiceViewController {
 
     private static String normalize(String s) {
         return (s == null) ? "" : s.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private Stage getStage() {
+        return (Stage) invoiceTable.getScene().getWindow();
+    }
+
+    private void reloadInvoices() {
+        try {
+            List<InvoiceView> views = invoiceService.findAll();
+            currentList.setAll(views);
+            applyFilters(); // keep current filters active
+        } catch (DatabaseException e) {
+            currentList.clear();
+            Alerts.error("Greška u dohvaćanju fakture.", e);
+        }
+    }
+
+    @FXML
+    private void onAddInvoice() {
+        Windows.openInvoiceForm(getStage(),
+                ScreenMode.CREATE, null);
+        reloadInvoices();
+    }
+
+    @FXML
+    private void onEditInvoice() {
+        InvoiceView sel = invoiceTable.getSelectionModel().getSelectedItem();
+        if (sel == null) {
+            Alerts.info("Odaberite fakturu za uređivanje.");
+            return;
+        }
+        Windows.openInvoiceForm(getStage(),
+                ScreenMode.EDIT, sel.invoice());
+        reloadInvoices();
+    }
+
+    @FXML
+    private void onViewInvoice() {
+        InvoiceView sel = invoiceTable.getSelectionModel().getSelectedItem();
+        if (sel == null) {
+            hr.java.production.ui.Alerts.info("Odaberite fakturu za pregled.");
+            return;
+        }
+        Windows.openInvoiceForm(getStage(),
+                ScreenMode.VIEW, sel.invoice());
+    }
+
+    @FXML
+    private void onDeleteInvoice() {
+        InvoiceView sel = invoiceTable.getSelectionModel().getSelectedItem();
+        if (sel == null) {
+            Alerts.info("Odaberite fakturu za brisanje.");
+            return;
+        }
+        if (!Alerts.confirm("Jeste li sigurni da želite obrisati odabranu fakturu?")) return;
+
+        try {
+            invoiceService.delete(sel.invoice().getId());
+            currentList.remove(sel);
+        } catch (Exception e) {
+            Alerts.error("Brisanje nije uspjelo. Faktura možda ima povezane zapise.", e);
+        }
     }
 }

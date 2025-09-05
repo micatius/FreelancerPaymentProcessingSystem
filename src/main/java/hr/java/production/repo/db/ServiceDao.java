@@ -3,7 +3,7 @@ package hr.java.production.repo.db;
 import hr.java.production.exception.DatabaseConnectionException;
 import hr.java.production.exception.DatabaseException;
 import hr.java.production.model.Service;
-import hr.java.production.util.DbUtil;
+import hr.java.production.util.DbUtils;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -75,7 +75,7 @@ public final class ServiceDao extends DbDao<Service> {
      * @throws DatabaseException u slučaju pogreške pri dohvaćanju podataka iz baze
      */
     public List<Service> findByInvoiceId(long invoiceId) throws DatabaseException {
-        try (Connection conn = DbUtil.connectToDatabase()) {
+        try (Connection conn = DbUtils.connectToDatabase()) {
             return findByInvoiceId(conn, invoiceId);
         } catch (SQLException | DatabaseConnectionException e) {
             throw new DatabaseException("Greška pri dohvaćanju service stavki za račun ID=" + invoiceId, e);
@@ -114,7 +114,7 @@ public final class ServiceDao extends DbDao<Service> {
 
     public Map<Long, List<Service>> findByInvoiceIds(Set<Long> invoiceIds) throws DatabaseException {
         if (invoiceIds == null || invoiceIds.isEmpty()) return Collections.emptyMap();
-        try (Connection c = DbUtil.connectToDatabase()) {
+        try (Connection c = DbUtils.connectToDatabase()) {
             return findByInvoiceIds(c, invoiceIds);
         }
         catch (SQLException | DatabaseConnectionException e) {
@@ -150,7 +150,7 @@ public final class ServiceDao extends DbDao<Service> {
      * @throws DatabaseException u slučaju greške prilikom pristupa bazi podataka
      */
     public void deleteByInvoiceId(long invoiceId) throws DatabaseException {
-        try (Connection conn = DbUtil.connectToDatabase()) {
+        try (Connection conn = DbUtils.connectToDatabase()) {
             deleteByInvoiceId(conn, invoiceId);
         } catch (SQLException | DatabaseConnectionException e) {
             throw new DatabaseException("Greška pri brisanju service stavki za račun ID=" + invoiceId, e);

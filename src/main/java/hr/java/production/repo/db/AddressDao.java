@@ -3,7 +3,7 @@ package hr.java.production.repo.db;
 import hr.java.production.exception.DatabaseConnectionException;
 import hr.java.production.exception.DatabaseException;
 import hr.java.production.model.Address;
-import hr.java.production.util.DbUtil;
+import hr.java.production.util.DbUtils;
 
 import java.sql.*;
 import java.util.Collections;
@@ -81,7 +81,7 @@ public final class AddressDao extends DbDao<Address> {
 
     public Map<Long, Address> findByIds(Set<Long> ids) throws DatabaseException {
         if (ids == null || ids.isEmpty()) return Collections.emptyMap();
-        try (Connection c = DbUtil.connectToDatabase()) {
+        try (Connection c = DbUtils.connectToDatabase()) {
             return findByIds(c, ids);
         }
         catch (SQLException | DatabaseConnectionException e) {

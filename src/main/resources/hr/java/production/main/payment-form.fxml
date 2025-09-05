@@ -33,27 +33,27 @@
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Label fx:id="titleLabel" text="DODAVANJE NOVE ISPLATE" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+            <Label fx:id="titleLabel" text="ISPLATA" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
                <font>
                   <Font size="20.0" />
                </font>
             </Label>
-            <TextField fx:id="amountField" GridPane.columnIndex="2" GridPane.rowIndex="2">
+            <TextField fx:id="amountField" disable="true" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="2">
                <GridPane.margin>
                   <Insets left="5.0" />
                </GridPane.margin>
             </TextField>
-            <DatePicker fx:id="datePaidPicker" GridPane.columnIndex="2" GridPane.rowIndex="4">
+            <DatePicker fx:id="datePaidPicker" GridPane.columnIndex="3" GridPane.rowIndex="2">
                <GridPane.margin>
                   <Insets left="5.0" />
                </GridPane.margin>
             </DatePicker>
-            <TextField fx:id="txField" GridPane.columnIndex="2" GridPane.rowIndex="3">
+            <TextField fx:id="txField" GridPane.columnIndex="1" GridPane.rowIndex="3">
                <GridPane.margin>
                   <Insets left="5.0" />
                </GridPane.margin>
             </TextField>
-            <Label text="Isplaćena faktura:" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
+            <Label text="Isplaćena faktura:" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
                <GridPane.margin>
                   <Insets right="15.0" />
                </GridPane.margin>
@@ -61,7 +61,7 @@
                   <Font size="14.0" />
                </font>
             </Label>
-            <Label text="Iznos (EUR):" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
+            <Label text="Iznos (EUR):" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
                <GridPane.margin>
                   <Insets right="15.0" />
                </GridPane.margin>
@@ -69,7 +69,7 @@
                   <Font size="14.0" />
                </font>
             </Label>
-            <Label text="Broj transakcije:" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
+            <Label text="Broj transakcije:" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
                <GridPane.margin>
                   <Insets right="15.0" />
                </GridPane.margin>
@@ -77,7 +77,7 @@
                   <Font size="14.0" />
                </font>
             </Label>
-            <Label text="Datum isplate:" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
+            <Label text="Datum isplate:" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
                <GridPane.margin>
                   <Insets right="15.0" />
                </GridPane.margin>
@@ -85,12 +85,12 @@
                   <Font size="14.0" />
                </font>
             </Label>
-            <ComboBox fx:id="invoiceComboBox" prefWidth="150.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
+            <ComboBox fx:id="invoiceComboBox" maxWidth="300.0" onAction="#onInvoiceSelected" prefWidth="150.0" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
                <GridPane.margin>
                   <Insets left="5.0" />
                </GridPane.margin>
             </ComboBox>
-            <Button fx:id="actionButton" mnemonicParsing="false" prefHeight="50.0" prefWidth="84.0" text="SPREMI" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="6" />
+            <Button fx:id="actionButton" mnemonicParsing="false" onAction="#onActionButton" prefHeight="38.0" prefWidth="151.0" text="SPREMI" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
          </children>
       </GridPane>
    </children>

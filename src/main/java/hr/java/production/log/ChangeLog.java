@@ -54,8 +54,7 @@ public record ChangeLog<T extends Entity & Serializable>(
         }
 
         if (entityId == null) {
-            Long derived = newValue != null ? newValue.getId() : (oldValue != null ? oldValue.getId() : null);
-            entityId = derived;
+            entityId = newValue != null ? newValue.getId() : oldValue.getId();
         }
     }
 
@@ -79,7 +78,7 @@ public record ChangeLog<T extends Entity & Serializable>(
      */
     public static <T extends Entity & Serializable> ChangeLog<T> updated(T oldValue, T newValue, String username) {
         Class<T> type = (Class<T>) (oldValue != null ? oldValue.getClass() : newValue.getClass());
-        Long id = newValue != null ? newValue.getId() : (oldValue != null ? oldValue.getId() : null);
+        Long id = newValue != null ? newValue.getId() : oldValue.getId();
         return new ChangeLog<>(type, Operation.UPDATE, id, oldValue, newValue, username, LocalDateTime.now());
     }
 

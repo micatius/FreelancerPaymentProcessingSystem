@@ -15,7 +15,7 @@ public abstract class Worker extends Entity implements Named {
     private String phoneNumber;
     private Address address;
 
-    public Worker(Long id) {
+    protected Worker(Long id) {
         super(id);
     }
 

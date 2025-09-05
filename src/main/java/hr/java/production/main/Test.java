@@ -1,16 +1,16 @@
 package hr.java.production.main;
 
-import hr.java.production.model.Invoice;
-import hr.java.production.repo.db.FreelancerDao;
+
 import hr.java.production.exception.DatabaseException;
+import hr.java.production.log.BinaryChangeLogger;
+import hr.java.production.log.ChangeLog;
+import hr.java.production.model.Entity;
 import hr.java.production.model.Freelancer;
-import hr.java.production.service.FreelancerService;
 import hr.java.production.service.InvoiceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Optional;
 
 public class Test {
     public static final Logger logger = LoggerFactory.getLogger(Test.class);
@@ -21,7 +21,7 @@ public class Test {
 //        userDao.save("mirko", "lozinka2", Role.ADMIN, 2L);
 //        userDao.save("jurica", "lozinka3", Role.FINANCE, 3L);
 //        userDao.save("vesna", "lozinka4", Role.FINANCE, 4L);
-//        userDao.save("alen", "lozinka5", Role.FREELANCER, 1L);
+//        userDao.save("ivan", "lozinka5", Role.FREELANCER, 1L);
 //        userDao.save("goran", "lozinka6", Role.FREELANCER, 2L);
 //        boolean valid = userDao.findByUsername("jurica")
 //                .map(user -> PasswordUtils.verify("lozinka4", user.hashedPassword()))
@@ -33,6 +33,10 @@ public class Test {
 
         List<InvoiceService.InvoiceView> invoices = is.findAll();
         System.out.println(invoices);
+        BinaryChangeLogger cl = new BinaryChangeLogger();
+        List<ChangeLog<Freelancer>> logs = cl.readAll(Freelancer.class);
+
+        System.out.println(logs);
 
     }
 }

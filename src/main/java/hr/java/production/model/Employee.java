@@ -2,64 +2,32 @@ package hr.java.production.model;
 
 import hr.java.production.exception.ObjectValidationException;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Optional;
-
 /**
  * Klasa Employee predstavlja zaposlenika koji nasljeđuje osnovne atribute iz klase Worker
  * i dodaje specifične informacije poput datuma zapošljavanja, datuma raskida ugovora,
  * odjela u kojem je zaposlenik zaposlen te plaće.
  */
 public class Employee extends Worker {
-    private LocalDate hireDate;
-    private LocalDate terminationDate;
     private Department department;
-    private BigDecimal salary;
 
     public Employee(String firstName, String lastName, String email, String phoneNumber, Address address,
-                    LocalDate hireDate, LocalDate terminationDate, Department department,
-                    BigDecimal salary) {
+                    Department department) {
         super(firstName, lastName, email, phoneNumber, address);
-        this.hireDate = hireDate;
-        this.terminationDate = terminationDate;
         this.department = department;
-        this.salary = salary;
     }
 
     public Employee(Long id, String firstName, String lastName, String email, String phoneNumber, Address address,
-                    LocalDate hireDate, LocalDate terminationDate, Department department,
-                    BigDecimal salary) {
+                    Department department
+                    ) {
         super(id, firstName, lastName, email, phoneNumber, address);
-        this.hireDate = hireDate;
-        this.terminationDate = terminationDate;
         this.department = department;
-        this.salary = salary;
     }
 
     public static class Builder extends Worker.Builder<Employee, Builder> {
-        private LocalDate hireDate;
-        private LocalDate terminationDate;
         private Department department;
-        private BigDecimal salary;
-
-        public Builder hireDate(LocalDate hireDate) {
-            this.hireDate = hireDate;
-            return self();
-        }
-
-        public Builder terminationDate(LocalDate terminationDate) {
-            this.terminationDate = terminationDate;
-            return self();
-        }
 
         public Builder department(Department department) {
             this.department = department;
-            return self();
-        }
-
-        public Builder salary(BigDecimal salary) {
-            this.salary = salary;
             return self();
         }
 
@@ -71,38 +39,13 @@ public class Employee extends Worker {
         @Override
         public Employee build() {
             validateWorkerFields();
-            if (hireDate == null) {
-                throw new ObjectValidationException("Datum zapošljavanja je obavezan");
-            }
             if (department == null) {
                 throw new ObjectValidationException("Odjel je obavezan");
             }
-            if (salary == null || salary.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new ObjectValidationException("Plaća mora biti pozitivna");
-            }
             return new Employee(
-                    id, firstName, lastName, email, phoneNumber, address,
-                    hireDate, terminationDate, department, salary
+                    id, firstName, lastName, email, phoneNumber, address, department
             );
         }
-    }
-
-    public LocalDate getHireDate() {
-        return hireDate;
-    }
-
-    public Employee setHireDate(LocalDate hireDate) {
-        this.hireDate = hireDate;
-        return this;
-    }
-
-    public Optional<LocalDate> getTerminationDate() {
-        return Optional.ofNullable(terminationDate);
-    }
-
-    public Employee setTerminationDate(LocalDate terminationDate) {
-        this.terminationDate = terminationDate;
-        return this;
     }
 
     public Department getDepartment() {
@@ -111,15 +54,6 @@ public class Employee extends Worker {
 
     public Employee setDepartment(Department department) {
         this.department = department;
-        return this;
-    }
-
-    public BigDecimal getSalary() {
-        return salary;
-    }
-
-    public Employee setSalary(BigDecimal salary) {
-        this.salary = salary;
         return this;
     }
 
@@ -132,10 +66,7 @@ public class Employee extends Worker {
     @Override
     public String toString() {
         return "Employee{" +
-                "hireDate=" + hireDate +
-                ", terminationDate=" + terminationDate +
                 ", department=" + department +
-                ", salary=" + salary +
                 '}';
     }
 }
